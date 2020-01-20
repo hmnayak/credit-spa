@@ -58,8 +58,8 @@ func (p *PostgresDb) createTable() error {
 			customer_id SERIAL REFERENCES customer(id),
 			amount 		NUMERIC,
 			date		DATE,
-			mode	    VARCHAR(5),
-			remarks		VARCHAR(100)
+			mode	    VARCHAR,
+			remarks		VARCHAR
 		)
 	`
 
@@ -69,8 +69,8 @@ func (p *PostgresDb) createTable() error {
 			customer_id SERIAL REFERENCES customer(id),
 			amount 		NUMERIC,
 			date		DATE,
-			mode	    VARCHAR(5),
-			remarks		VARCHAR(100)
+			mode	    VARCHAR,
+			remarks		VARCHAR
 		)
 	`
 
@@ -189,10 +189,10 @@ func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 // CreateCredit creates a new credit entry
 func (p *PostgresDb) CreateCredit(t model.Transaction) error {
 	query := `
-		INSERT INTO credit (customer_id, amount, date, remarks) 
-		VALUES ($1, $2, $3, $4) 
+		INSERT INTO credit (customer_id, amount, date, mode, remarks) 
+		VALUES ($1, $2, $3, $4, $5) 
 	`
-	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Remarks)
+	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Mode, t.Remarks)
 	if err != nil {
 		return err
 	}
@@ -203,10 +203,10 @@ func (p *PostgresDb) CreateCredit(t model.Transaction) error {
 // CreatePayment creates a new payment entry
 func (p *PostgresDb) CreatePayment(t model.Transaction) error {
 	query := `
-		INSERT INTO payment (customer_id, amount, date, remarks) 
-		VALUES ($1, $2, $3, $4) 
+		INSERT INTO payment (customer_id, amount, date, mode, remarks) 
+		VALUES ($1, $2, $3, $4, $5) 
 	`
-	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Remarks)
+	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Mode, t.Remarks)
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
 func (p *PostgresDb) GetRoutes() ([]string, error) {
 	r := []string{}
 	query := `
-		SELECT delivery_route 
+		SELECT DISTINCT delivery_route 
 		FROM customer
 	`
 	err := p.dbConn.Select(&r, query)
@@ -286,7 +286,7 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Transaction, error) {
 	credits := []*model.Transaction{}
 	query := `
-		SELECT amount, date, mode, remarks
+		SELECT customer_id, amount, date, mode, remarks
 		FROM credit
 		WHERE customer_id=$1
 	`
@@ -295,8 +295,6 @@ func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Transactio
 		return credits, err
 	}
 
-	log.Println(credits)
-
 	return credits, nil
 }
 
@@ -304,7 +302,7 @@ func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Transactio
 func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Transaction, error) {
 	payments := []*model.Transaction{}
 	query := `
-		SELECT amount, date, mode, remarks
+		SELECT customer_id, amount, date, mode, remarks
 		FROM payment
 		WHERE customer_id=$1
 	`

@@ -4,7 +4,7 @@ package model
 type Transaction struct {
 	CustomerID int     `db:"customer_id" json:"customerid"`
 	Date       string  `db:"date" json:"date"`
-	Amount     float64 `db:"amount" json:"amount"`
+	Amount     float64 `db:"amount" json:"amount,string"`
 	Mode       *string  `db:"mode" json:"mode"`
 	Remarks    *string `db:"remarks" json:"remarks"`
 }

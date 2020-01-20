@@ -203,11 +203,11 @@ func createCredit(m *model.Model, res http.ResponseWriter, req *http.Request) {
 	var t model.Transaction
 	err := json.NewDecoder(req.Body).Decode(&t)
 	if err != nil {
-		log.Fatalln("Error decoding body:", err)
+		log.Panicln("Error decoding body:", err)
 	}
 	err = m.Db.CreateCredit(t)
 	if err != nil {
-		log.Fatalln("Error CreateCredit:", err)
+		log.Panicln("Error CreateCredit:", err)
 	}
 
 	res.WriteHeader(http.StatusCreated)
@@ -217,12 +217,11 @@ func createPayment(m *model.Model, res http.ResponseWriter, req *http.Request) {
 	var t model.Transaction
 	err := json.NewDecoder(req.Body).Decode(&t)
 	if err != nil {
-		log.Println("Error decoding body:", err)
+		log.Panicln("Error decoding body:", err)
 	}
-	log.Println(t)
 	err = m.Db.CreatePayment(t)
 	if err != nil {
-		log.Println("Error CreatePayment:", err)
+		log.Panicln("Error CreatePayment:", err)
 	}
 
 	res.WriteHeader(http.StatusCreated)
@@ -232,7 +231,7 @@ func getPaymentsByCustomer(m *model.Model, id int64, res http.ResponseWriter, re
 	p, err := m.Db.GetPaymentsByCustomer(id)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error getCustomersOnRoute: %v", err)
+		log.Panicln("Error getPaymentsByCustomer: %v", err)
 	}
 	res.Header().Set("content-type", "application/json")
 	res.Header().Set("Access-Control-Allow-Origin", "*")
@@ -243,7 +242,7 @@ func getCreditsByCustomer(m *model.Model, id int64, res http.ResponseWriter, req
 	c, err := m.Db.GetCreditsByCustomer(id)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error getCustomersOnRoute: %v", err)
+		log.Panicln("Error getCreditsByCustomer: %v", err)
 	}
 	res.Header().Set("content-type", "application/json")
 	res.Header().Set("Access-Control-Allow-Origin", "*")
