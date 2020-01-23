@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hmnayak/credit/model"
@@ -16,12 +17,26 @@ type PostgresDb struct {
 
 // Config stores the connection string to connect to a db instance
 type Config struct {
-	ConnectionString string
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+	SSLMode  string `yaml:"sslmode"`
+}
+
+func (c Config) String() string {
+	if c.Password == "" {
+		return fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s",
+			c.Host, c.Port, c.User, c.DBName, c.SSLMode)
+	}
+	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
+		c.Host, c.Port, c.User, c.DBName, c.Password, c.SSLMode)
 }
 
 //InitDb creates a table in postgres using the configuration provided
 func InitDb(cfg Config) (*PostgresDb, error) {
-	dbConn, err := sqlx.Connect("postgres", cfg.ConnectionString)
+	dbConn, err := sqlx.Connect("postgres", fmt.Sprintf("%v", cfg))
 	if err != nil {
 		return nil, err
 	}
@@ -251,6 +266,7 @@ func (p *PostgresDb) GetRoutes() ([]string, error) {
 	query := `
 		SELECT DISTINCT delivery_route 
 		FROM customer
+		ORDER BY delivery_route
 	`
 	err := p.dbConn.Select(&r, query)
 	if err != nil {
@@ -266,6 +282,7 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 		SELECT id, name, short_name, delivery_route
 		FROM customer
 		WHERE delivery_route=$1
+		ORDER BY short_name
 	`
 	err := p.dbConn.Select(&c, query, r)
 	if err != nil {

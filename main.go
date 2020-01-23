@@ -2,41 +2,59 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
+	"github.com/hmnayak/credit/controller"
 	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/model"
-	"github.com/rs/cors"
+	"github.com/hmnayak/credit/ui"
 )
 
+// AppConfig is a container of api configuration data
+type AppConfig struct {
+	DBConfig db.Config `yaml:"postgresdb"`
+}
+
 func main() {
-	pgConfig := db.Config{
-		ConnectionString: "host=localhost port=5432 user=mnayak dbname=credit sslmode=disable",
-	}
-	pgDb, err := db.InitDb(pgConfig)
+	configFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
-		log.Panicln("Error InitDb: %v", err)
+		log.Fatalln("Error reading configuration file:", err)
 	}
-	m := model.New(pgDb)
+
+	var config AppConfig
+	err = yaml.Unmarshal([]byte(configFile), &config)
+	if err != nil {
+		log.Fatalln("Error parsing configuration data:", err)
+	}
+
+	c := controller.Controller{}
+	c.Init(config.DBConfig)
 
 	mux := http.NewServeMux()
-	c := cors.AllowAll()
-	mux.Handle("/routes/", c.Handler(routesHandler(m)))
-	mux.Handle("/customers/", c.Handler(customersHandler(m)))
-	mux.Handle("/credits/", c.Handler(creditsHandler(m)))
-	mux.Handle("/payments/", c.Handler(paymentsHandler(m)))
+
+	mux.Handle("/routes/", routesHandler(c))
+	mux.Handle("/customers/", customersHandler(c))
+	mux.Handle("/credits/", creditsHandler(c))
+	mux.Handle("/payments/", paymentsHandler(c))
+
 	err = http.ListenAndServe(":8001", mux)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
+	log.Println("Listening on port 8001...")
 }
 
-func routesHandler(m *model.Model) http.Handler {
+func routesHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
 		if req.Method == "GET" {
 			// remove trailing slash
 			cleanPath := path.Clean(req.URL.Path)
@@ -45,17 +63,34 @@ func routesHandler(m *model.Model) http.Handler {
 			switch len(pathParams) {
 			case 1:
 				// routes/
-				getAllRoutes(m, res, req)
+				routes, err := c.GetAllRoutes()
+				if err != nil {
+					response = ui.MakeErrorResponse("An error occurred getting all routes")
+				}
+				response = ui.CreateResponse(http.StatusOK, "", routes)
 			case 2:
 				// routes/{route}/
-				getCustomersOnRoute(m, pathParams[1], res, req)
+				customers, err := c.GetCreditorsOnRoute(pathParams[1])
+				if err != nil {
+					response =
+						ui.MakeErrorResponse("An error occured getting customers on route - " +
+							pathParams[1])
+				}
+				response = ui.CreateResponse(http.StatusOK, "", customers)
 			}
 		}
+		ui.Respond(res, response)
 	})
 }
 
-func customersHandler(m *model.Model) http.Handler {
+func customersHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusCreated, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
 		if req.Method == "GET" {
 			// remove trailing slash
 			cleanPath := path.Clean(req.URL.Path)
@@ -67,184 +102,162 @@ func customersHandler(m *model.Model) http.Handler {
 				switch len(q) {
 				case 0:
 					// no query params
-					getAllCustomers(m, res, req)
+					creditors, err := c.GetAllCreditors()
+					if err != nil {
+						response = ui.MakeErrorResponse("An error occurred getting all creditors")
+					}
+					response = ui.CreateResponse(http.StatusOK, "", creditors)
 				case 2:
 					// customers?route={r}&name={n}
-					getCustomerByNameRoute(m, q.Get("route"), q.Get("name"), res, req)
+					route := q.Get("route")
+					name := q.Get("name")
+					creditor, err := c.GetCreditorByNameRoute(route, name)
+					if err != nil {
+						response = ui.MakeErrorResponse(
+							fmt.Sprintf("An error occured getting creditor %v on route %v",
+								route, name))
+					}
+					response = ui.CreateResponse(http.StatusOK, "", creditor)
 				}
 			} else if len(pathParams) == 2 {
 				// customers/{id}
 				id, err := strconv.ParseInt(pathParams[1], 10, 64)
 				if err != nil {
-					getCustomerByID(m, id, res, req)
+					response = ui.MakeErrorResponse(
+						fmt.Sprintf("An error occured parsing creditor id %v",
+							pathParams[1]))
 				}
+				creditor, err := c.GetCreditorByID(id)
+				if err != nil {
+					response = ui.MakeErrorResponse(
+						fmt.Sprintf("An error occured getting creditor with id %v:",
+							id, err))
+				}
+				response = ui.CreateResponse(http.StatusOK, "", creditor)
 			}
 		} else if req.Method == "POST" {
-			createCustomer(m, res, req)
+			var creditor model.Customer
+			err := json.NewDecoder(req.Body).Decode(&creditor)
+			if err != nil {
+				log.Panicln("Error decoding body:", err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
+			}
+			id, err := c.CreateCreditor(creditor)
+			if err != nil {
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured creating creditor: %v", err))
+			}
+			response = ui.CreateResponse(http.StatusCreated, "", id)
 		}
+		ui.Respond(res, response)
 	})
 }
 
-func paymentsHandler(m *model.Model) http.Handler {
+func paymentsHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusOK, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
 		if req.Method == "POST" {
-			createPayment(m, res, req)
+			var t model.Transaction
+			err := json.NewDecoder(req.Body).Decode(&t)
+			if err != nil {
+				log.Panicln("Error decoding body:", err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing payment: %v", req.Body))
+				ui.Respond(res, response)
+				return
+			}
+			err = c.CreatePayment(t)
+			if err != nil {
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured creating payment: %v", err))
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusCreated, "", nil)
+			ui.RespondWithOptions(res, response)
 		} else if req.Method == "GET" {
 			// remove trailing slash
 			cleanPath := path.Clean(req.URL.Path)
 			pathParams := strings.Split(cleanPath[1:], "/")
 			id, err := strconv.ParseInt(pathParams[1], 10, 64)
 			if err != nil {
-				log.Println(err)
+				log.Panicln(err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing creditor id %v",
+						pathParams[1]))
+				ui.Respond(res, response)
+				return
 			}
-			getPaymentsByCustomer(m, id, res, req)
+			payments, err := c.GetPaymentsByCreditor(id)
+			if err != nil {
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured getting payments by creditor with id %v:",
+						id, err))
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusOK, "", payments)
+			ui.Respond(res, response)
 		}
 	})
 }
 
-func creditsHandler(m *model.Model) http.Handler {
+func creditsHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-
+		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusOK, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
 		if req.Method == "POST" {
-			createCredit(m, res, req)
+			var t model.Transaction
+			err := json.NewDecoder(req.Body).Decode(&t)
+			if err != nil {
+				log.Panicln("Error decoding body:", err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing credit: %v", req.Body))
+				ui.Respond(res, response)
+				return
+			}
+			err = c.CreateCredit(t)
+			if err != nil {
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured creating credit: %v", err))
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusCreated, "", nil)
+			ui.RespondWithOptions(res, response)
 		} else if req.Method == "GET" {
 			// remove trailing slash
 			cleanPath := path.Clean(req.URL.Path)
 			pathParams := strings.Split(cleanPath[1:], "/")
 			id, err := strconv.ParseInt(pathParams[1], 10, 64)
 			if err != nil {
-				log.Println(err)
+				log.Panicln(err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing creditor id %v",
+						pathParams[1]))
+				ui.Respond(res, response)
+				return
 			}
-			getCreditsByCustomer(m, id, res, req)
+			credits, err := c.GetCreditsByCreditor(id)
+			if err != nil {
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured getting credits by creditor with id %v:",
+						id, err))
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusOK, "", credits)
+			ui.Respond(res, response)
 		}
 	})
-}
-
-func getAllRoutes(m *model.Model, res http.ResponseWriter, req *http.Request) {
-	r, err := m.Db.GetRoutes()
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error GetRoutes: %v", err)
-	}
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(r)
-}
-
-func getCustomersOnRoute(m *model.Model, route string, res http.ResponseWriter, req *http.Request) {
-	c, err := m.Db.GetCustomersOnRoute(route)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error getCustomersOnRoute: %v", err)
-	}
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(c)
-}
-
-func getAllCustomers(m *model.Model, res http.ResponseWriter, req *http.Request) {
-	customers, err := m.Db.GetAllCustomers()
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error SelectCustomers: %v", err)
-	}
-
-	for _, c := range customers {
-		c.CalculateDueAmount()
-	}
-
-	res.Header().Set("content-type", "application/json")
-	json.NewEncoder(res).Encode(customers)
-}
-
-func getCustomerByID(m *model.Model, id int64, res http.ResponseWriter, req *http.Request) {
-	customer, err := m.Db.GetCustomerByID(id)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error SelectCustomers: %v", err)
-	}
-	// customer.CalculateDueAmount()
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(customer)
-}
-
-func getCustomerByNameRoute(m *model.Model, route string, name string, res http.ResponseWriter, req *http.Request) {
-	customer, err := m.Db.GetCustomerByNameRoute(route, name)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error SelectCustomers: %v", err)
-	}
-	// customer.CalculateDueAmount()
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(customer)
-}
-
-func createCustomer(m *model.Model, res http.ResponseWriter, req *http.Request) {
-	var c model.Customer
-	err := json.NewDecoder(req.Body).Decode(&c)
-	if err != nil {
-		log.Panicln("Error decoding body:", err)
-	}
-	id, err := m.Db.CreateCustomer(c)
-	if err != nil {
-		log.Panicln("Error CreateCustomer:", err)
-	}
-	customer, _ := m.Db.GetCustomerByID(id)
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	res.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	res.WriteHeader(http.StatusCreated)
-	json.NewEncoder(res).Encode(customer)
-}
-
-func createCredit(m *model.Model, res http.ResponseWriter, req *http.Request) {
-	var t model.Transaction
-	err := json.NewDecoder(req.Body).Decode(&t)
-	if err != nil {
-		log.Panicln("Error decoding body:", err)
-	}
-	err = m.Db.CreateCredit(t)
-	if err != nil {
-		log.Panicln("Error CreateCredit:", err)
-	}
-
-	res.WriteHeader(http.StatusCreated)
-}
-
-func createPayment(m *model.Model, res http.ResponseWriter, req *http.Request) {
-	var t model.Transaction
-	err := json.NewDecoder(req.Body).Decode(&t)
-	if err != nil {
-		log.Panicln("Error decoding body:", err)
-	}
-	err = m.Db.CreatePayment(t)
-	if err != nil {
-		log.Panicln("Error CreatePayment:", err)
-	}
-
-	res.WriteHeader(http.StatusCreated)
-}
-
-func getPaymentsByCustomer(m *model.Model, id int64, res http.ResponseWriter, req *http.Request) {
-	p, err := m.Db.GetPaymentsByCustomer(id)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error getPaymentsByCustomer: %v", err)
-	}
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(p)
-}
-
-func getCreditsByCustomer(m *model.Model, id int64, res http.ResponseWriter, req *http.Request) {
-	c, err := m.Db.GetCreditsByCustomer(id)
-	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		log.Panicln("Error getCreditsByCustomer: %v", err)
-	}
-	res.Header().Set("content-type", "application/json")
-	res.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(res).Encode(c)
 }
