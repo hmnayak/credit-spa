@@ -2,14 +2,20 @@ package model
 
 // Db specifies methods to manage resources
 type Db interface {
+	Login(string, string) (string, error)
+	CreateUserSession(string, string, string) error
+	GetUserSession(string) (AuthToken, error)
+	DeleteUserSession(string) error
+	ValidateUser(string) (AuthToken, error)
 	GetRoutes() ([]string, error)
-	GetCustomersOnRoute(r string) ([]*Customer, error)
+	GetCustomersOnRoute(string) ([]*Customer, error)
 	GetAllCustomers() ([]*Customer, error)
 	GetCustomerByID(int64) (*Customer, error)
 	GetCustomerByNameRoute(string, string) (*Customer, error)
 	CreateCustomer(Customer) (int64, error)
-	CreateCredit(Transaction) error
-	CreatePayment(Transaction) error
-	GetCreditsByCustomer(int64) ([]*Transaction, error)
-	GetPaymentsByCustomer(int64) ([]*Transaction, error)
+	CreateCredit(Credit) error
+	CreatePayment(Payment) error
+	GetCreditsByCustomer(int64) ([]*Credit, error)
+	GetPaymentsByCustomer(int64) ([]*Payment, error)
+	GetAllDefaulters() ([]*Customer, error)
 }

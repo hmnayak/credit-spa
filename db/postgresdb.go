@@ -1,8 +1,11 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/hmnayak/credit/model"
 	"github.com/jmoiron/sqlx"
@@ -56,15 +59,33 @@ func InitDb(cfg Config) (*PostgresDb, error) {
 }
 
 func (p *PostgresDb) createTable() error {
+	createUserTable := `
+		CREATE TABLE IF NOT EXISTS useraccount (
+			id			SERIAL	NOT NULL PRIMARY KEY,
+			name 	 	VARCHAR NOT NULL,
+			password 	VARCHAR NOT NULL,
+			auth 		VARCHAR NOT NULL
+		)
+	`
+
+	createUserSessionTable := `
+		CREATE TABLE IF NOT EXISTS usersession (
+			token		VARCHAR	NOT NULL PRIMARY KEY,
+			username 	VARCHAR NOT NULL,
+			auth		VARCHAR NOT NULL
+		)
+	`
+
 	createCustomerTable := `
 		CREATE TABLE IF NOT EXISTS customer (
 			id 			  	SERIAL        NOT NULL PRIMARY KEY,
-			name          	VARCHAR(40)	NOT NULL,
-			short_name	  	VARCHAR(5),
-			delivery_route 	VARCHAR(5),
+			full_name       VARCHAR	NOT NULL,
+			search_name	  	VARCHAR NOT NULL,
+			delivery_route 	VARCHAR,
 			contact			integer[],
-			UNIQUE (short_name, delivery_route)
-		);
+			credit_limit	integer,
+			UNIQUE (search_name, delivery_route)
+		)
 	`
 
 	createCreditTable := `
@@ -73,7 +94,6 @@ func (p *PostgresDb) createTable() error {
 			customer_id SERIAL REFERENCES customer(id),
 			amount 		NUMERIC,
 			date		DATE,
-			mode	    VARCHAR,
 			remarks		VARCHAR
 		)
 	`
@@ -89,7 +109,17 @@ func (p *PostgresDb) createTable() error {
 		)
 	`
 
-	_, err := p.dbConn.Exec(createCustomerTable)
+	_, err := p.dbConn.Exec(createUserTable)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.dbConn.Exec(createUserSessionTable)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.dbConn.Exec(createCustomerTable)
 	if err != nil {
 		return err
 	}
@@ -107,11 +137,86 @@ func (p *PostgresDb) createTable() error {
 	return nil
 }
 
+// Login returns the authorization assigned to the provided login credentials.
+func (p *PostgresDb) Login(username string, password string) (string, error) {
+	var authorization string
+	query := `
+		SELECT auth
+		FROM useraccount
+		WHERE name=$1 AND password=$2
+	`
+	err := p.dbConn.Get(&authorization, query, username, password)
+	return authorization, err
+}
+
+// CreateUserSession creates an entry for the provided authentication token in usersession table.
+func (p *PostgresDb) CreateUserSession(token string, username string, auth string) error {
+	query := `
+		INSERT INTO usersession (token, username, auth)
+		VALUES ($1, $2, $3)
+	`
+	_, err := p.dbConn.Exec(query, token, username, auth)
+	return err
+}
+
+// GetUserSession returns an authentication associated with the provided user if one exists.
+func (p *PostgresDb) GetUserSession(username string) (model.AuthToken, error) {
+	var token model.AuthToken
+	query := `
+		SELECT token, username, auth
+		FROM usersession
+		WHERE username=$1
+	`
+	err := p.dbConn.Get(&token, query, username)
+	if err != nil {
+		log.Println("Error getting user session:", err)
+		return token, err
+	}
+	return token, nil
+}
+
+// DeleteUserSession creates an entry for the provided authentication token in usersession table.
+func (p *PostgresDb) DeleteUserSession(token string) error {
+	query := `
+		DELETE FROM usersession 
+		WHERE token=$1
+	`
+	_, err := p.dbConn.Exec(query, token)
+	return err
+}
+
+// ValidateUser looks for the provided authentication token in the user session table.
+func (p *PostgresDb) ValidateUser(token string) (model.AuthToken, error) {
+	var user model.AuthToken
+	query := `
+		SELECT username, auth
+		FROM usersession
+		WHERE token=$1
+	`
+	err := p.dbConn.Get(&user, query, token)
+	return user, err
+}
+
+// GetRoutes returns all delivery routes.
+func (p *PostgresDb) GetRoutes() ([]string, error) {
+	r := []string{}
+	query := `
+		SELECT DISTINCT delivery_route 
+		FROM customer
+		ORDER BY delivery_route
+	`
+	err := p.dbConn.Select(&r, query)
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
 // GetAllCustomers gets the list of all customers
 func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	customers := make([]*model.Customer, 0)
 	query := `
-		SELECT id, name, short_name, delivery_route 
+		SELECT id, full_name, search_name, delivery_route 
 		FROM customer
 	`
 	err := p.dbConn.Select(&customers, query)
@@ -120,39 +225,33 @@ func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	}
 
 	for _, c := range customers {
-		credits := []model.Transaction{}
+		credits := []model.Credit{}
 		creditsStmt := `
 			SELECT amount, date
 			FROM credit
 			WHERE customer_id=$1
 		`
 		err = p.dbConn.Select(&credits, creditsStmt, c.ID)
-		if err != nil {
-			log.Println("Error getting credits:", err)
-		}
 		c.Credits = credits
 
-		payments := []model.Transaction{}
+		payments := []model.Payment{}
 		paymentsStmt := `
 			SELECT amount, date
 			FROM payment
 			WHERE customer_id=$1
 		`
 		err = p.dbConn.Select(&payments, paymentsStmt, c.ID)
-		if err != nil {
-			log.Println("Error getting credits:", err)
-		}
 		c.Payments = payments
 	}
 
-	return customers, nil
+	return customers, err
 }
 
 // GetCustomerByID gets a single customer with the id provided
 func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT id, name, short_name, delivery_route 
+		SELECT full_name, search_name, delivery_route 
 		FROM customer 
 		WHERE id=$1
 	`
@@ -168,12 +267,15 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT id, name, short_name, delivery_route 
+		SELECT id, full_name, search_name, delivery_route 
 		FROM customer 
-		WHERE delivery_route=$1 AND short_name=$2
+		WHERE delivery_route=$1 AND search_name=$2
 	`
 	err := p.dbConn.Get(&c, query, route, name)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no customer with delivery route: %v, search_name: %v \n", route, name)
+		}
 		return &c, err
 	}
 
@@ -190,10 +292,10 @@ func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.C
 func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 	var newID int64
 	query := `
-		INSERT INTO	customer (name, short_name, delivery_route) 
+		INSERT INTO	customer (name, search_name, delivery_route, credit_limit) 
 		VALUES ($1, $2, $3)
 	`
-	res, err := p.dbConn.Exec(query, c.Name, c.ShortName, c.DeliveryRoute)
+	res, err := p.dbConn.Exec(query, c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit)
 	if err != nil {
 		return newID, err
 	}
@@ -202,12 +304,12 @@ func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 }
 
 // CreateCredit creates a new credit entry
-func (p *PostgresDb) CreateCredit(t model.Transaction) error {
+func (p *PostgresDb) CreateCredit(t model.Credit) error {
 	query := `
-		INSERT INTO credit (customer_id, amount, date, mode, remarks) 
-		VALUES ($1, $2, $3, $4, $5) 
+		INSERT INTO credit (customer_id, amount, date, remarks) 
+		VALUES ($1, $2, $3, $4) 
 	`
-	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Mode, t.Remarks)
+	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Remarks)
 	if err != nil {
 		return err
 	}
@@ -216,7 +318,7 @@ func (p *PostgresDb) CreateCredit(t model.Transaction) error {
 }
 
 // CreatePayment creates a new payment entry
-func (p *PostgresDb) CreatePayment(t model.Transaction) error {
+func (p *PostgresDb) CreatePayment(t model.Payment) error {
 	query := `
 		INSERT INTO payment (customer_id, amount, date, mode, remarks) 
 		VALUES ($1, $2, $3, $4, $5) 
@@ -260,73 +362,110 @@ func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
 	return dueAmount, nil
 }
 
-// GetRoutes returns all delivery routes
-func (p *PostgresDb) GetRoutes() ([]string, error) {
-	r := []string{}
-	query := `
-		SELECT DISTINCT delivery_route 
-		FROM customer
-		ORDER BY delivery_route
-	`
-	err := p.dbConn.Select(&r, query)
-	if err != nil {
-		return r, err
-	}
-	return r, nil
-}
-
 // GetCustomersOnRoute returns all customers on a routes
 func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 	c := []*model.Customer{}
 	query := `
-		SELECT id, name, short_name, delivery_route
+		SELECT id, full_name, search_name, delivery_route
 		FROM customer
 		WHERE delivery_route=$1
-		ORDER BY short_name
+		ORDER BY search_name
 	`
 	err := p.dbConn.Select(&c, query, r)
 	if err != nil {
 		return c, err
 	}
-	// for i := range c {
-	// 	due, err := p.GetDueAmount(*c[i])
-	// 	if err != nil {
-	// 		log.Println("Error getting due amount:", err)
-	// 	}
-	// 	c[i].DueAmount = due
-	// }
 
 	return c, nil
 }
 
 // GetCreditsByCustomer gets all credits received by a customer
-func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Transaction, error) {
-	credits := []*model.Transaction{}
+func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Credit, error) {
+	credits := []*model.Credit{}
 	query := `
-		SELECT customer_id, amount, date, mode, remarks
+		SELECT customer_id, date, amount, remarks
 		FROM credit
 		WHERE customer_id=$1
 	`
-	err := p.dbConn.Select(&credits, query, customerID)
+	rows, err := p.dbConn.Query(query, customerID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no payments found for customer id: %v \n")
+		}
 		return credits, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c model.Credit
+		if err := rows.Scan(&c.CustomerID, &c.Date, &c.Amount, &c.Remarks); err != nil {
+			log.Panicln("error scanning payment row:", err)
+		}
+		date, err := time.Parse(time.RFC3339, c.Date)
+		if err != nil {
+			log.Println("error parsing date: ", err)
+		}
+		c.Date = date.Format("02-01-2006")
+		credits = append(credits, &c)
 	}
 
 	return credits, nil
 }
 
 // GetPaymentsByCustomer gets all payments made by a customer
-func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Transaction, error) {
-	payments := []*model.Transaction{}
+func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Payment, error) {
+	payments := []*model.Payment{}
 	query := `
-		SELECT customer_id, amount, date, mode, remarks
+		SELECT customer_id, date, amount, mode, remarks
 		FROM payment
 		WHERE customer_id=$1
 	`
-	err := p.dbConn.Select(&payments, query, customerID)
+
+	rows, err := p.dbConn.Query(query, customerID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no payments found for customer id: %v \n")
+		}
 		return payments, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p model.Payment
+		if err := rows.Scan(&p.CustomerID, &p.Date, &p.Amount, &p.Mode, &p.Remarks); err != nil {
+			log.Panicln("error scanning payment row:", err)
+		}
+		date, err := time.Parse(time.RFC3339, p.Date)
+		if err != nil {
+			log.Println("error parsing date: ", err)
+		}
+		p.Date = date.Format("02-01-2006")
+		payments = append(payments, &p)
 	}
 
 	return payments, nil
+}
+
+// GetAllDefaulters gets a list of creditors that are defaulting on payments
+func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
+	defaulters := []*model.Customer{}
+
+	all, err := p.GetAllCustomers()
+	if err != nil {
+		log.Println("Error getting all customers: ", err)
+		return defaulters, err
+	}
+
+	for _, c := range all {
+		due, err := p.GetDueAmount(*c)
+		if err != nil {
+			log.Println("Error getting due amount for customer:", err)
+			return defaulters, err
+		}
+		if due > float64(c.CreditLimit) {
+			defaulters = append(defaulters, c)
+		}
+	}
+
+	return defaulters, nil
 }

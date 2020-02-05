@@ -2,14 +2,15 @@ package model
 
 // Customer is the model of a person/business entity who receives credits and makes payments
 type Customer struct {
-	ID            int           `db:"id" json:"id"`
-	Name          string        `db:"name" json:"name"`
-	ShortName     string        `db:"short_name" json:"shortname"`
-	DeliveryRoute string        `db:"delivery_route" json:"deliveryroute"`
-	Contact       []int         `db:"contact" json:"contact"`
-	Credits       []Transaction `db:"credits" json:"-"`
-	Payments      []Transaction `db:"payments" json:"-"`
-	DueAmount     float64       `db:"due_amount" json:"dueamount"`
+	ID            int       `db:"id" json:"id"`
+	FullName      string    `db:"full_name" json:"fullname"`
+	SearchName    string    `db:"search_name" json:"searchname"`
+	DeliveryRoute string    `db:"delivery_route" json:"deliveryroute"`
+	Contact       []int     `db:"contact" json:"contact"`
+	Credits       []Credit  `db:"credits" json:"-"`
+	Payments      []Payment `db:"payments" json:"-"`
+	DueAmount     float64   `db:"due_amount" json:"dueamount"`
+	CreditLimit   int       `db:"credit_limit" json:"creditlimit"`
 }
 
 // CalculateDueAmount is a helper method to calculate the total due amount for a customer

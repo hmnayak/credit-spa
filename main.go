@@ -20,7 +20,8 @@ import (
 
 // AppConfig is a container of api configuration data
 type AppConfig struct {
-	DBConfig db.Config `yaml:"postgresdb"`
+	DBConfig   db.Config `yaml:"postgresdb"`
+	AuthSecret string    `yaml:"authsecret"`
 }
 
 func main() {
@@ -36,14 +37,16 @@ func main() {
 	}
 
 	c := controller.Controller{}
-	c.Init(config.DBConfig)
+	c.Init(config.DBConfig, config.AuthSecret)
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/routes/", routesHandler(c))
-	mux.Handle("/customers/", customersHandler(c))
-	mux.Handle("/credits/", creditsHandler(c))
-	mux.Handle("/payments/", paymentsHandler(c))
+	mux.Handle("/login/", loginHandler(c))
+	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
+	mux.Handle("/customers/", authenticate(c, customersHandler(c)))
+	mux.Handle("/credits/", authenticate(c, creditsHandler(c)))
+	mux.Handle("/payments/", authenticate(c, paymentsHandler(c)))
+	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
 
 	err = http.ListenAndServe(":8001", mux)
 	if err != nil {
@@ -52,9 +55,126 @@ func main() {
 	log.Println("Listening on port 8001...")
 }
 
+func authenticate(c controller.Controller, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
+		t, err := req.Cookie("token")
+		if err != nil {
+			if err == http.ErrNoCookie {
+				response = ui.CreateResponse(http.StatusUnauthorized,
+					"No authentication token present in request cookies", nil)
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusBadRequest,
+				"An authentication token needs to be present in request cookies", nil)
+			ui.Respond(res, response)
+			return
+		}
+		auth, err := c.ValidateUser(t.Value)
+		if err != nil {
+			response = ui.CreateResponse(http.StatusUnauthorized,
+				"Invalid authentication token", nil)
+			ui.Respond(res, response)
+			return
+		}
+
+		if auth == "r" {
+			switch req.Method {
+			case "OPTIONS":
+			case "PUT":
+			case "POST":
+			case "DELETE":
+			case "PATCH":
+				response = ui.CreateResponse(http.StatusUnauthorized,
+					"Credentials not authorized to perform the operation", nil)
+				ui.Respond(res, response)
+				return
+			}
+		}
+
+		h.ServeHTTP(res, req)
+	})
+}
+
+func loginHandler(c controller.Controller) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusOK, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
+		if req.Method == "POST" {
+			var user model.User
+			err := json.NewDecoder(req.Body).Decode(&user)
+			if err != nil {
+				log.Panicln("Error decoding credentials from payload:", err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
+
+				ui.Respond(res, response)
+				return
+			}
+
+			token, err := c.Login(user.Username, user.Password)
+			if err != nil {
+				log.Panicln("Unable to login with credentials:", err)
+				response = ui.MakeErrorResponse(
+					fmt.Sprintf("Unable to login with credentials: %v", req.Body))
+
+				ui.Respond(res, response)
+				return
+			}
+
+			response = ui.CreateResponse(http.StatusAccepted, "", nil)
+
+			http.SetCookie(res, &http.Cookie{
+				Name:  "token",
+				Value: token.Token,
+				Path:  "/",
+			})
+			ui.Respond(res, response)
+		}
+		if req.Method == "DELETE" {
+			var response ui.Response
+
+			t, err := req.Cookie("token")
+			if err != nil {
+				if err == http.ErrNoCookie {
+					response = ui.CreateResponse(http.StatusUnauthorized,
+						"No authentication token present in request cookies", nil)
+					ui.Respond(res, response)
+					return
+				}
+				response = ui.CreateResponse(http.StatusBadRequest,
+					"An authentication token needs to be present in request cookies", nil)
+				ui.Respond(res, response)
+				return
+			}
+
+			err = c.Logout(t.Value)
+			if err != nil {
+				response = ui.CreateResponse(http.StatusInternalServerError,
+					"Error logging out user", nil)
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusAccepted, "User logged out successfully", nil)
+			ui.Respond(res, response)
+			return
+		}
+	})
+}
+
 func routesHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusOK, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
 		if req.Method == "GET" {
 			// remove trailing slash
 			cleanPath := path.Clean(req.URL.Path)
@@ -87,7 +207,7 @@ func customersHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
 		if req.Method == "OPTIONS" {
-			response = ui.CreateResponse(http.StatusCreated, "", nil)
+			response = ui.CreateResponse(http.StatusOK, "", nil)
 			ui.RespondWithOptions(res, response)
 			return
 		}
@@ -110,7 +230,7 @@ func customersHandler(c controller.Controller) http.Handler {
 				case 2:
 					// customers?route={r}&name={n}
 					route := q.Get("route")
-					name := q.Get("name")
+					name := q.Get("searchname")
 					creditor, err := c.GetCreditorByNameRoute(route, name)
 					if err != nil {
 						response = ui.MakeErrorResponse(
@@ -142,11 +262,17 @@ func customersHandler(c controller.Controller) http.Handler {
 				log.Panicln("Error decoding body:", err)
 				response = ui.MakeErrorResponse(
 					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
+
+				ui.Respond(res, response)
+				return
 			}
 			id, err := c.CreateCreditor(creditor)
 			if err != nil {
 				response = ui.MakeErrorResponse(
 					fmt.Sprintf("An error occured creating creditor: %v", err))
+
+				ui.Respond(res, response)
+				return
 			}
 			response = ui.CreateResponse(http.StatusCreated, "", id)
 		}
@@ -163,7 +289,7 @@ func paymentsHandler(c controller.Controller) http.Handler {
 			return
 		}
 		if req.Method == "POST" {
-			var t model.Transaction
+			var t model.Payment
 			err := json.NewDecoder(req.Body).Decode(&t)
 			if err != nil {
 				log.Panicln("Error decoding body:", err)
@@ -203,6 +329,7 @@ func paymentsHandler(c controller.Controller) http.Handler {
 				return
 			}
 			response = ui.CreateResponse(http.StatusOK, "", payments)
+
 			ui.Respond(res, response)
 		}
 	})
@@ -217,7 +344,7 @@ func creditsHandler(c controller.Controller) http.Handler {
 			return
 		}
 		if req.Method == "POST" {
-			var t model.Transaction
+			var t model.Credit
 			err := json.NewDecoder(req.Body).Decode(&t)
 			if err != nil {
 				log.Panicln("Error decoding body:", err)
@@ -257,6 +384,22 @@ func creditsHandler(c controller.Controller) http.Handler {
 				return
 			}
 			response = ui.CreateResponse(http.StatusOK, "", credits)
+			ui.Respond(res, response)
+		}
+	})
+}
+
+func defaultersHandler(c controller.Controller) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		var response ui.Response
+		if req.Method == "GET" {
+			d, err := c.GetAllDefaulters()
+			if err != nil {
+				response = ui.MakeErrorResponse("An error occurred getting all defaulters")
+				ui.Respond(res, response)
+				return
+			}
+			response = ui.CreateResponse(http.StatusOK, "", d)
 			ui.Respond(res, response)
 		}
 	})

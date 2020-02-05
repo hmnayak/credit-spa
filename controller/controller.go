@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"log"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/model"
@@ -10,19 +13,103 @@ import (
 // Controller processes http requests.
 // It contains a reference to the data store to perform CRUD operations.
 type Controller struct {
-	model *model.Model
+	model      *model.Model
+	authSecret string
 }
 
 // Init sets up a connection to database with configuration provided
-func (c *Controller) Init(dbConfig db.Config) error {
+func (c *Controller) Init(dbConfig db.Config, authSecret string) error {
 	db, err := db.InitDb(dbConfig)
 	if err != nil {
 		log.Panicln("Error InitDb: %v", err)
 	}
 
 	c.model = model.New(db)
+	c.authSecret = authSecret
 
 	return err
+}
+
+// Login verifies a login attempt with the provided credentials, returns auth token if successful
+func (c *Controller) Login(username string, password string) (model.AuthToken, error) {
+	var authToken model.AuthToken
+	auth, err := c.model.Db.Login(username, password)
+	if err != nil {
+		log.Panicln("Error logging in:", err)
+		return authToken, err
+	}
+
+	// Create a new token object, specifying signing method and the claims
+	// you would like it to contain.
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username":      username,
+		"authorization": auth,
+	})
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString([]byte(c.authSecret))
+	if err != nil {
+		log.Panicln("Error signing auth token:", err)
+		return authToken, err
+	}
+
+	a, err := c.model.Db.GetUserSession(username)
+	if err == nil {
+		return a, nil
+	}
+
+	err = c.model.Db.CreateUserSession(tokenString, username, auth)
+	if err != nil {
+		log.Panicln("Error creating user session:", err)
+		return authToken, err
+	}
+
+	authToken.Token = tokenString
+	authToken.UserName = username
+	authToken.Authorization = auth
+	return authToken, err
+}
+
+// Logout invalidates the authentication token provided.
+func (c *Controller) Logout(token string) error {
+	err := c.model.Db.DeleteUserSession(token)
+	if err != nil {
+		log.Panicln("Error deleting user session:", err)
+		return err
+	}
+	return nil
+}
+
+// ValidateUser confirms the validity of authentication tokens
+func (c *Controller) ValidateUser(tokenStr string) (string, error) {
+	var authorization string
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(c.authSecret), nil
+	})
+
+	if err != nil {
+		log.Println("Error parsing token:", err)
+		return authorization, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		a, err := c.model.Db.ValidateUser(tokenStr)
+		if err != nil {
+			log.Println("Error validating user:", err)
+			return authorization, err
+		}
+		if a.UserName == claims["username"] && a.Authorization == claims["authorization"] {
+			return claims["authorization"].(string), nil
+		}
+	} else {
+		return authorization, jwt.ErrSignatureInvalid
+	}
+
+	return authorization, nil
 }
 
 // GetAllRoutes returns a list of all delivery routes
@@ -39,7 +126,7 @@ func (c *Controller) GetAllRoutes() ([]string, error) {
 func (c *Controller) GetCreditorsOnRoute(route string) ([]*model.Customer, error) {
 	creditors, err := c.model.Db.GetCustomersOnRoute(route)
 	if err != nil {
-		log.Panicln("Error getCustomersOnRoute:", err)
+		log.Panicln("Error GetCustomersOnRoute:", err)
 	}
 
 	return creditors, err
@@ -49,7 +136,7 @@ func (c *Controller) GetCreditorsOnRoute(route string) ([]*model.Customer, error
 func (c *Controller) GetAllCreditors() ([]*model.Customer, error) {
 	creditors, err := c.model.Db.GetAllCustomers()
 	if err != nil {
-		log.Panicln("Error SelectCustomers:", err)
+		log.Panicln("Error GetAllCreditors:", err)
 	}
 
 	for _, c := range creditors {
@@ -63,7 +150,7 @@ func (c *Controller) GetAllCreditors() ([]*model.Customer, error) {
 func (c *Controller) GetCreditorByID(id int64) (*model.Customer, error) {
 	creditor, err := c.model.Db.GetCustomerByID(id)
 	if err != nil {
-		log.Panicln("Error SelectCustomers:", err)
+		log.Panicln("Error GetCreditorByID:", err)
 	}
 
 	return creditor, err
@@ -73,7 +160,7 @@ func (c *Controller) GetCreditorByID(id int64) (*model.Customer, error) {
 func (c *Controller) GetCreditorByNameRoute(route string, name string) (*model.Customer, error) {
 	creditor, err := c.model.Db.GetCustomerByNameRoute(route, name)
 	if err != nil {
-		log.Panicln("Error SelectCustomers:", err)
+		log.Println("Error GetCreditorByNameRoute:", err)
 	}
 
 	return creditor, err
@@ -90,7 +177,7 @@ func (c *Controller) CreateCreditor(creditor model.Customer) (int64, error) {
 }
 
 // CreateCredit stores a new credit transaction
-func (c *Controller) CreateCredit(credit model.Transaction) error {
+func (c *Controller) CreateCredit(credit model.Credit) error {
 	err := c.model.Db.CreateCredit(credit)
 	if err != nil {
 		log.Panicln("Error CreateCredit:", err)
@@ -100,7 +187,7 @@ func (c *Controller) CreateCredit(credit model.Transaction) error {
 }
 
 // CreatePayment stores a new payment transaction
-func (c *Controller) CreatePayment(payment model.Transaction) error {
+func (c *Controller) CreatePayment(payment model.Payment) error {
 	err := c.model.Db.CreatePayment(payment)
 	if err != nil {
 		log.Panicln("Error CreatePayment:", err)
@@ -110,21 +197,31 @@ func (c *Controller) CreatePayment(payment model.Transaction) error {
 }
 
 // GetPaymentsByCreditor returns all payments made by given creditor
-func (c *Controller) GetPaymentsByCreditor(id int64) ([]*model.Transaction, error) {
+func (c *Controller) GetPaymentsByCreditor(id int64) ([]*model.Payment, error) {
 	p, err := c.model.Db.GetPaymentsByCustomer(id)
 	if err != nil {
-		log.Panicln("Error GetPaymentsByCreditor:", err)
+		log.Println("Error GetPaymentsByCreditor:", err)
 	}
 
 	return p, err
 }
 
 // GetCreditsByCreditor returns all payments made by given creditor
-func (c *Controller) GetCreditsByCreditor(id int64) ([]*model.Transaction, error) {
+func (c *Controller) GetCreditsByCreditor(id int64) ([]*model.Credit, error) {
 	credits, err := c.model.Db.GetCreditsByCustomer(id)
 	if err != nil {
-		log.Panicln("Error GetCreditsByCreditor:", err)
+		log.Println("Error GetCreditsByCreditor:", err)
 	}
 
 	return credits, err
+}
+
+// GetAllDefaulters returns all creditors whose due amount exceeds their credit limit
+func (c *Controller) GetAllDefaulters() ([]*model.Customer, error) {
+	d, err := c.model.Db.GetAllDefaulters()
+	if err != nil {
+		log.Println("Error GetAllDefaulters:", err)
+	}
+
+	return d, err
 }
