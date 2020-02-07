@@ -21,13 +21,14 @@ type Controller struct {
 func (c *Controller) Init(dbConfig db.Config, authSecret string) error {
 	db, err := db.InitDb(dbConfig)
 	if err != nil {
-		log.Panicln("Error InitDb: %v", err)
+		log.Println("Error InitDb: %v", err)
+		return err
 	}
 
 	c.model = model.New(db)
 	c.authSecret = authSecret
 
-	return err
+	return nil
 }
 
 // Login verifies a login attempt with the provided credentials, returns auth token if successful
@@ -35,7 +36,7 @@ func (c *Controller) Login(username string, password string) (model.AuthToken, e
 	var authToken model.AuthToken
 	auth, err := c.model.Db.Login(username, password)
 	if err != nil {
-		log.Panicln("Error logging in:", err)
+		log.Println("Error logging in:", err)
 		return authToken, err
 	}
 
@@ -49,7 +50,7 @@ func (c *Controller) Login(username string, password string) (model.AuthToken, e
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.SignedString([]byte(c.authSecret))
 	if err != nil {
-		log.Panicln("Error signing auth token:", err)
+		log.Println("Error signing auth token:", err)
 		return authToken, err
 	}
 
@@ -60,24 +61,23 @@ func (c *Controller) Login(username string, password string) (model.AuthToken, e
 
 	err = c.model.Db.CreateUserSession(tokenString, username, auth)
 	if err != nil {
-		log.Panicln("Error creating user session:", err)
+		log.Println("Error creating user session:", err)
 		return authToken, err
 	}
 
 	authToken.Token = tokenString
 	authToken.UserName = username
 	authToken.Authorization = auth
-	return authToken, err
+	return authToken, nil
 }
 
 // Logout invalidates the authentication token provided.
 func (c *Controller) Logout(token string) error {
 	err := c.model.Db.DeleteUserSession(token)
 	if err != nil {
-		log.Panicln("Error deleting user session:", err)
-		return err
+		log.Println("Error deleting user session:", err)
 	}
-	return nil
+	return err
 }
 
 // ValidateUser confirms the validity of authentication tokens
@@ -116,7 +116,7 @@ func (c *Controller) ValidateUser(tokenStr string) (string, error) {
 func (c *Controller) GetAllRoutes() ([]string, error) {
 	r, err := c.model.Db.GetRoutes()
 	if err != nil {
-		log.Panicln("Error GetAllRoutes:", err)
+		log.Println("Error GetAllRoutes:", err)
 	}
 
 	return r, err
@@ -126,7 +126,7 @@ func (c *Controller) GetAllRoutes() ([]string, error) {
 func (c *Controller) GetCreditorsOnRoute(route string) ([]*model.Customer, error) {
 	creditors, err := c.model.Db.GetCustomersOnRoute(route)
 	if err != nil {
-		log.Panicln("Error GetCustomersOnRoute:", err)
+		log.Println("Error GetCustomersOnRoute:", err)
 	}
 
 	return creditors, err
@@ -136,24 +136,25 @@ func (c *Controller) GetCreditorsOnRoute(route string) ([]*model.Customer, error
 func (c *Controller) GetAllCreditors() ([]*model.Customer, error) {
 	creditors, err := c.model.Db.GetAllCustomers()
 	if err != nil {
-		log.Panicln("Error GetAllCreditors:", err)
+		log.Println("Error GetAllCreditors:", err)
+		return creditors, err
 	}
 
 	for _, c := range creditors {
 		c.CalculateDueAmount()
 	}
 
-	return creditors, err
+	return creditors, nil
 }
 
 // GetCreditorByID returns the representation of a creditor with the given ID
 func (c *Controller) GetCreditorByID(id int64) (*model.Customer, error) {
 	creditor, err := c.model.Db.GetCustomerByID(id)
 	if err != nil {
-		log.Panicln("Error GetCreditorByID:", err)
+		log.Println("Error GetCreditorByID:", err)
 	}
 
-	return creditor, err
+	return creditor, nil
 }
 
 // GetCreditorByNameRoute returns the representation of a creditor with the name and delivery route provided
@@ -170,7 +171,7 @@ func (c *Controller) GetCreditorByNameRoute(route string, name string) (*model.C
 func (c *Controller) CreateCreditor(creditor model.Customer) (int64, error) {
 	id, err := c.model.Db.CreateCustomer(creditor)
 	if err != nil {
-		log.Panicln("Error CreateCustomer:", err)
+		log.Println("Error CreateCustomer:", err)
 	}
 
 	return id, err
@@ -180,7 +181,7 @@ func (c *Controller) CreateCreditor(creditor model.Customer) (int64, error) {
 func (c *Controller) CreateCredit(credit model.Credit) error {
 	err := c.model.Db.CreateCredit(credit)
 	if err != nil {
-		log.Panicln("Error CreateCredit:", err)
+		log.Println("Error CreateCredit:", err)
 	}
 
 	return err
@@ -190,7 +191,7 @@ func (c *Controller) CreateCredit(credit model.Credit) error {
 func (c *Controller) CreatePayment(payment model.Payment) error {
 	err := c.model.Db.CreatePayment(payment)
 	if err != nil {
-		log.Panicln("Error CreatePayment:", err)
+		log.Println("Error CreatePayment:", err)
 	}
 
 	return err
@@ -199,7 +200,7 @@ func (c *Controller) CreatePayment(payment model.Payment) error {
 // GetPaymentsByCreditor returns all payments made by given creditor
 func (c *Controller) GetPaymentsByCreditor(id int64) ([]*model.Payment, error) {
 	p, err := c.model.Db.GetPaymentsByCustomer(id)
-	if err != nil {
+	if err != err {
 		log.Println("Error GetPaymentsByCreditor:", err)
 	}
 

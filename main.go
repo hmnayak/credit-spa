@@ -109,7 +109,7 @@ func loginHandler(c controller.Controller) http.Handler {
 			var user model.User
 			err := json.NewDecoder(req.Body).Decode(&user)
 			if err != nil {
-				log.Panicln("Error decoding credentials from payload:", err)
+				log.Println("Error decoding credentials from payload:", err)
 				response = ui.MakeErrorResponse(
 					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
 
@@ -119,7 +119,7 @@ func loginHandler(c controller.Controller) http.Handler {
 
 			token, err := c.Login(user.Username, user.Password)
 			if err != nil {
-				log.Panicln("Unable to login with credentials:", err)
+				log.Println("Unable to login with credentials:", err)
 				response = ui.MakeErrorResponse(
 					fmt.Sprintf("Unable to login with credentials: %v", req.Body))
 
