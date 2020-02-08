@@ -292,7 +292,7 @@ func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.C
 func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 	var newID int64
 	query := `
-		INSERT INTO	customer (name, search_name, delivery_route, credit_limit) 
+		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
 		VALUES ($1, $2, $3)
 	`
 	res, err := p.dbConn.Exec(query, c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -43,7 +44,7 @@ func main() {
 
 	mux.Handle("/login/", loginHandler(c))
 	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
-	mux.Handle("/customers/", authenticate(c, customersHandler(c)))
+	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
 	mux.Handle("/credits/", authenticate(c, creditsHandler(c)))
 	mux.Handle("/payments/", authenticate(c, paymentsHandler(c)))
 	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
@@ -110,8 +111,8 @@ func loginHandler(c controller.Controller) http.Handler {
 			err := json.NewDecoder(req.Body).Decode(&user)
 			if err != nil {
 				log.Println("Error decoding credentials from payload:", err)
-				response = ui.MakeErrorResponse(
-					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
+					fmt.Sprintf("Error decoding credentials from request body: %v", req.Body))
 
 				ui.Respond(res, response)
 				return
@@ -119,9 +120,10 @@ func loginHandler(c controller.Controller) http.Handler {
 
 			token, err := c.Login(user.Username, user.Password)
 			if err != nil {
-				log.Println("Unable to login with credentials:", err)
-				response = ui.MakeErrorResponse(
-					fmt.Sprintf("Unable to login with credentials: %v", req.Body))
+				log.Printf("Unable to login with credentials: %v %v \nError: %v",
+					user.Username, user.Password, err)
+				response = ui.MakeErrorResponse(http.StatusUnauthorized,
+					fmt.Sprintf("Unable to login with credentials"))
 
 				ui.Respond(res, response)
 				return
@@ -185,16 +187,23 @@ func routesHandler(c controller.Controller) http.Handler {
 				// routes/
 				routes, err := c.GetAllRoutes()
 				if err != nil {
-					response = ui.MakeErrorResponse("An error occurred getting all routes")
+					response = ui.MakeErrorResponse(http.StatusInternalServerError,
+						"An error occurred getting all routes")
 				}
 				response = ui.CreateResponse(http.StatusOK, "", routes)
 			case 2:
 				// routes/{route}/
-				customers, err := c.GetCreditorsOnRoute(pathParams[1])
+				route := pathParams[1]
+				customers, err := c.GetCreditorsOnRoute(route)
 				if err != nil {
-					response =
-						ui.MakeErrorResponse("An error occured getting customers on route - " +
-							pathParams[1])
+					switch err {
+					case sql.ErrNoRows:
+						ui.RespondError(res, http.StatusNoContent,
+							fmt.Sprintln("No creditors found on route:", route))
+					default:
+						ui.RespondError(res, http.StatusInternalServerError,
+							fmt.Sprintln("An error occured getting customers on route:", route))
+					}
 				}
 				response = ui.CreateResponse(http.StatusOK, "", customers)
 			}
@@ -224,7 +233,8 @@ func customersHandler(c controller.Controller) http.Handler {
 					// no query params
 					creditors, err := c.GetAllCreditors()
 					if err != nil {
-						response = ui.MakeErrorResponse("An error occurred getting all creditors")
+						response = ui.MakeErrorResponse(http.StatusInternalServerError,
+							"An error occurred getting all creditors")
 					}
 					response = ui.CreateResponse(http.StatusOK, "", creditors)
 				case 2:
@@ -233,7 +243,7 @@ func customersHandler(c controller.Controller) http.Handler {
 					name := q.Get("searchname")
 					creditor, err := c.GetCreditorByNameRoute(route, name)
 					if err != nil {
-						response = ui.MakeErrorResponse(
+						ui.RespondError(res, http.StatusInternalServerError,
 							fmt.Sprintf("An error occured getting creditor %v on route %v",
 								route, name))
 					}
@@ -243,13 +253,13 @@ func customersHandler(c controller.Controller) http.Handler {
 				// customers/{id}
 				id, err := strconv.ParseInt(pathParams[1], 10, 64)
 				if err != nil {
-					response = ui.MakeErrorResponse(
+					response = ui.MakeErrorResponse(http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing creditor id %v",
 							pathParams[1]))
 				}
 				creditor, err := c.GetCreditorByID(id)
 				if err != nil {
-					response = ui.MakeErrorResponse(
+					response = ui.MakeErrorResponse(http.StatusNoContent,
 						fmt.Sprintf("An error occured getting creditor with id %v:",
 							id, err))
 				}
@@ -260,7 +270,7 @@ func customersHandler(c controller.Controller) http.Handler {
 			err := json.NewDecoder(req.Body).Decode(&creditor)
 			if err != nil {
 				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
 
 				ui.Respond(res, response)
@@ -268,7 +278,7 @@ func customersHandler(c controller.Controller) http.Handler {
 			}
 			id, err := c.CreateCreditor(creditor)
 			if err != nil {
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					fmt.Sprintf("An error occured creating creditor: %v", err))
 
 				ui.Respond(res, response)
@@ -293,14 +303,14 @@ func paymentsHandler(c controller.Controller) http.Handler {
 			err := json.NewDecoder(req.Body).Decode(&t)
 			if err != nil {
 				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("An error occured parsing payment: %v", req.Body))
 				ui.Respond(res, response)
 				return
 			}
 			err = c.CreatePayment(t)
 			if err != nil {
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					fmt.Sprintf("An error occured creating payment: %v", err))
 				ui.Respond(res, response)
 				return
@@ -314,7 +324,7 @@ func paymentsHandler(c controller.Controller) http.Handler {
 			id, err := strconv.ParseInt(pathParams[1], 10, 64)
 			if err != nil {
 				log.Panicln(err)
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("An error occured parsing creditor id %v",
 						pathParams[1]))
 				ui.Respond(res, response)
@@ -322,7 +332,7 @@ func paymentsHandler(c controller.Controller) http.Handler {
 			}
 			payments, err := c.GetPaymentsByCreditor(id)
 			if err != nil {
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					fmt.Sprintf("An error occured getting payments by creditor with id %v:",
 						id, err))
 				ui.Respond(res, response)
@@ -348,14 +358,14 @@ func creditsHandler(c controller.Controller) http.Handler {
 			err := json.NewDecoder(req.Body).Decode(&t)
 			if err != nil {
 				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("An error occured parsing credit: %v", req.Body))
 				ui.Respond(res, response)
 				return
 			}
 			err = c.CreateCredit(t)
 			if err != nil {
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					fmt.Sprintf("An error occured creating credit: %v", err))
 				ui.Respond(res, response)
 				return
@@ -369,7 +379,7 @@ func creditsHandler(c controller.Controller) http.Handler {
 			id, err := strconv.ParseInt(pathParams[1], 10, 64)
 			if err != nil {
 				log.Panicln(err)
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("An error occured parsing creditor id %v",
 						pathParams[1]))
 				ui.Respond(res, response)
@@ -377,7 +387,7 @@ func creditsHandler(c controller.Controller) http.Handler {
 			}
 			credits, err := c.GetCreditsByCreditor(id)
 			if err != nil {
-				response = ui.MakeErrorResponse(
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					fmt.Sprintf("An error occured getting credits by creditor with id %v:",
 						id, err))
 				ui.Respond(res, response)
@@ -395,7 +405,8 @@ func defaultersHandler(c controller.Controller) http.Handler {
 		if req.Method == "GET" {
 			d, err := c.GetAllDefaulters()
 			if err != nil {
-				response = ui.MakeErrorResponse("An error occurred getting all defaulters")
+				response = ui.MakeErrorResponse(http.StatusInternalServerError,
+					"An error occurred getting all defaulters")
 				ui.Respond(res, response)
 				return
 			}

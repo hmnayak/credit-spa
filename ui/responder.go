@@ -41,7 +41,13 @@ func CreateResponse(status int, message string, payload interface{}) Response {
 }
 
 // MakeErrorResponse creates an error response object with the message provided
-func MakeErrorResponse(message string) Response {
+func MakeErrorResponse(status int, message string) Response {
 	r := Response{HTTPStatus: http.StatusInternalServerError, Message: message, Payload: nil}
 	return r
+}
+
+// RespondError responsds to http request with an error response
+func RespondError(w http.ResponseWriter, errorcode int, message string) {
+	r := Response{HTTPStatus: errorcode, Message: message, Payload: nil}
+	Respond(w, r)
 }
