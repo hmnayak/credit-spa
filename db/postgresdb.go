@@ -82,7 +82,6 @@ func (p *PostgresDb) createTable() error {
 			full_name       VARCHAR	NOT NULL,
 			search_name	  	VARCHAR NOT NULL,
 			delivery_route 	VARCHAR,
-			contact			integer[],
 			credit_limit	integer,
 			UNIQUE (search_name, delivery_route)
 		)
@@ -216,7 +215,7 @@ func (p *PostgresDb) GetRoutes() ([]string, error) {
 func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	customers := make([]*model.Customer, 0)
 	query := `
-		SELECT id, full_name, search_name, delivery_route 
+		SELECT id, full_name, search_name, delivery_route, credit_limit 
 		FROM customer
 	`
 	err := p.dbConn.Select(&customers, query)
@@ -251,7 +250,7 @@ func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT full_name, search_name, delivery_route 
+		SELECT id, full_name, search_name, delivery_route, credit_limit  
 		FROM customer 
 		WHERE id=$1
 	`
@@ -267,7 +266,7 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT id, full_name, search_name, delivery_route 
+		SELECT id, full_name, search_name, delivery_route, credit_limit  
 		FROM customer 
 		WHERE delivery_route=$1 AND search_name=$2
 	`
@@ -294,13 +293,12 @@ func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 	query := `
 		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
 		VALUES ($1, $2, $3, $4)
+		RETURNING id
 	`
-	res, err := p.dbConn.Exec(query, c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit)
-	if err != nil {
-		return newID, err
-	}
-	newID, err = res.LastInsertId()
-	return newID, nil
+	log.Println("Customer to create:", c)
+	err := p.dbConn.QueryRow(query,
+		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit).Scan(&newID)
+	return newID, err
 }
 
 // CreateCredit creates a new credit entry

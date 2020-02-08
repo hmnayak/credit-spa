@@ -154,7 +154,7 @@ func (c *Controller) GetCreditorByID(id int64) (*model.Customer, error) {
 		log.Println("Error GetCreditorByID:", err)
 	}
 
-	return creditor, nil
+	return creditor, err
 }
 
 // GetCreditorByNameRoute returns the representation of a creditor with the name and delivery route provided

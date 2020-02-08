@@ -6,7 +6,6 @@ type Customer struct {
 	FullName      string    `db:"full_name" json:"fullname"`
 	SearchName    string    `db:"search_name" json:"searchname"`
 	DeliveryRoute string    `db:"delivery_route" json:"route"`
-	Contact       []int     `db:"contact" json:"contact"`
 	Credits       []Credit  `db:"credits" json:"-"`
 	Payments      []Payment `db:"payments" json:"-"`
 	DueAmount     float64   `db:"due_amount" json:"dueamount"`
