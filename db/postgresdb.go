@@ -293,7 +293,7 @@ func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 	var newID int64
 	query := `
 		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
-		VALUES ($1, $2, $3)
+		VALUES ($1, $2, $3, $4)
 	`
 	res, err := p.dbConn.Exec(query, c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit)
 	if err != nil {
