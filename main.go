@@ -59,7 +59,7 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 		var response ui.Response
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
+			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
 			return
 		}
 		t, err := req.Cookie("token")
@@ -103,8 +103,9 @@ func loginHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
 		if req.Method == "OPTIONS" {
+			origin := req.Header.Get("Origin")
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
+			ui.RespondWithOptions(res, response, origin)
 			return
 		}
 		if req.Method == "POST" {
@@ -175,7 +176,7 @@ func routesHandler(c controller.Controller) http.Handler {
 		var response ui.Response
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
+			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
 			return
 		}
 		if req.Method == "GET" {
@@ -218,7 +219,7 @@ func customersHandler(c controller.Controller) http.Handler {
 		var response ui.Response
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
+			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
 			return
 		}
 		// extract path parameters
@@ -344,7 +345,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusCreated, "", nil)
-					ui.RespondWithOptions(res, response)
+					ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
 					return
 				} else if pathParams[2] == "payments" {
 					var payment model.Payment
@@ -364,7 +365,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusCreated, "", nil)
-					ui.RespondWithOptions(res, response)
+					ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
 					return
 				}
 			}
