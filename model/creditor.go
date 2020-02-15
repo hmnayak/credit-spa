@@ -9,7 +9,7 @@ type Customer struct {
 	Credits       []Credit  `db:"credits" json:"-"`
 	Payments      []Payment `db:"payments" json:"-"`
 	DueAmount     float64   `db:"due_amount" json:"dueamount"`
-	CreditLimit   int       `db:"credit_limit" json:"creditlimit"`
+	CreditLimit   int       `db:"credit_limit" json:"creditlimit,string"`
 }
 
 // CalculateDueAmount is a helper method to calculate the total due amount for a customer

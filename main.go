@@ -45,8 +45,6 @@ func main() {
 	mux.Handle("/login/", loginHandler(c))
 	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
 	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
-	mux.Handle("/credits/", authenticate(c, creditsHandler(c)))
-	mux.Handle("/payments/", authenticate(c, paymentsHandler(c)))
 	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
 
 	err = http.ListenAndServe(":8001", mux)
@@ -59,6 +57,11 @@ func main() {
 func authenticate(c controller.Controller, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		if req.Method == "OPTIONS" {
+			response = ui.CreateResponse(http.StatusOK, "", nil)
+			ui.RespondWithOptions(res, response)
+			return
+		}
 		t, err := req.Cookie("token")
 		if err != nil {
 			if err == http.ErrNoCookie {
@@ -79,7 +82,6 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			ui.Respond(res, response)
 			return
 		}
-
 		if auth == "r" {
 			switch req.Method {
 			case "OPTIONS":
@@ -93,7 +95,6 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 				return
 			}
 		}
-
 		h.ServeHTTP(res, req)
 	})
 }
@@ -220,11 +221,11 @@ func customersHandler(c controller.Controller) http.Handler {
 			ui.RespondWithOptions(res, response)
 			return
 		}
-		if req.Method == "GET" {
-			// remove trailing slash
-			cleanPath := path.Clean(req.URL.Path)
-			pathParams := strings.Split(cleanPath[1:], "/")
+		// extract path parameters
+		cleanPath := path.Clean(req.URL.Path)
+		pathParams := strings.Split(cleanPath[1:], "/")
 
+		if req.Method == "GET" {
 			if len(pathParams) == 1 {
 				// customers/
 				q := req.URL.Query()
@@ -233,10 +234,12 @@ func customersHandler(c controller.Controller) http.Handler {
 					// no query params
 					creditors, err := c.GetAllCreditors()
 					if err != nil {
-						response = ui.MakeErrorResponse(http.StatusInternalServerError,
+						ui.RespondError(res, http.StatusInternalServerError,
 							"An error occurred getting all creditors")
+						return
 					}
 					response = ui.CreateResponse(http.StatusOK, "", creditors)
+					ui.Respond(res, response)
 				case 2:
 					// customers?route={r}&name={n}
 					route := q.Get("route")
@@ -248,153 +251,123 @@ func customersHandler(c controller.Controller) http.Handler {
 								route, name))
 					}
 					response = ui.CreateResponse(http.StatusOK, "", creditor)
+					ui.Respond(res, response)
 				}
 			} else if len(pathParams) == 2 {
 				// customers/{id}
 				id, err := strconv.ParseInt(pathParams[1], 10, 64)
 				if err != nil {
-					response = ui.MakeErrorResponse(http.StatusBadRequest,
+					ui.RespondError(res, http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing creditor id %v",
 							pathParams[1]))
+					return
 				}
 				creditor, err := c.GetCreditorByID(id)
 				if err != nil {
-					response = ui.MakeErrorResponse(http.StatusNoContent,
+					ui.RespondError(res, http.StatusNoContent,
 						fmt.Sprintf("An error occured getting creditor with id %v:",
 							id, err))
+					return
 				}
 				response = ui.CreateResponse(http.StatusOK, "", creditor)
+				ui.Respond(res, response)
+			} else if len(pathParams) == 3 {
+				// customers/{id}/credits or customers/{id}/payments
+				id, err := strconv.ParseInt(pathParams[1], 10, 64)
+				if err != nil {
+					ui.RespondError(res, http.StatusBadRequest,
+						fmt.Sprintf("An error occured parsing creditor id %v",
+							pathParams[1]))
+					return
+				}
+				if pathParams[2] == "credits" {
+					credits, err := c.GetCreditsByCreditor(id)
+					if err != nil {
+						ui.RespondError(res, http.StatusInternalServerError,
+							fmt.Sprintf("An error occured getting credits by creditor with id %v:",
+								id, err))
+						return
+					}
+					response = ui.CreateResponse(http.StatusOK, "", credits)
+					ui.Respond(res, response)
+				} else if pathParams[2] == "payments" {
+					payments, err := c.GetPaymentsByCreditor(id)
+					if err != nil {
+						ui.RespondError(res, http.StatusInternalServerError,
+							fmt.Sprintf("An error occured getting payments by creditor with id %v:",
+								id, err))
+						return
+					}
+					response = ui.CreateResponse(http.StatusOK, "", payments)
+					ui.Respond(res, response)
+				}
 			}
 		} else if req.Method == "POST" {
-			var creditor model.Customer
-			err := json.NewDecoder(req.Body).Decode(&creditor)
-			if err != nil {
-				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(http.StatusBadRequest,
-					fmt.Sprintf("An error occured parsing request body: %v", req.Body))
+			if len(pathParams) == 1 {
+				// creditors/
+				var creditor model.Customer
+				err := json.NewDecoder(req.Body).Decode(&creditor)
+				if err != nil {
+					log.Panicln("Error decoding body:", err)
+					response = ui.MakeErrorResponse(http.StatusBadRequest,
+						fmt.Sprintf("An error occured parsing request body: %v", req.Body))
 
-				ui.Respond(res, response)
-				return
-			}
-			id, err := c.CreateCreditor(creditor)
-			if err != nil {
-				response = ui.MakeErrorResponse(http.StatusInternalServerError,
-					fmt.Sprintf("An error occured creating creditor: %v", err))
+					ui.Respond(res, response)
+					return
+				}
+				id, err := c.CreateCreditor(creditor)
+				if err != nil {
+					response = ui.MakeErrorResponse(http.StatusInternalServerError,
+						fmt.Sprintf("An error occured creating creditor: %v", err))
 
+					ui.Respond(res, response)
+					return
+				}
+				response = ui.CreateResponse(http.StatusCreated, "", id)
 				ui.Respond(res, response)
 				return
+			} else if len(pathParams) == 3 {
+				// creditors/{id}/credits or creditors/{id}/payments
+				if pathParams[2] == "credits" {
+					var credit model.Credit
+					err := json.NewDecoder(req.Body).Decode(&credit)
+					if err != nil {
+						log.Panicln("Error decoding body:", err)
+						ui.RespondError(res, http.StatusBadRequest,
+							fmt.Sprintf("An error occured parsing credit: %v", req.Body))
+						return
+					}
+					err = c.CreateCredit(credit)
+					if err != nil {
+						ui.RespondError(res, http.StatusInternalServerError,
+							fmt.Sprintf("An error occured creating credit: %v", err))
+						return
+					}
+					response = ui.CreateResponse(http.StatusCreated, "", nil)
+					ui.RespondWithOptions(res, response)
+					return
+				} else if pathParams[2] == "payments" {
+					var payment model.Payment
+					err := json.NewDecoder(req.Body).Decode(&payment)
+					if err != nil {
+						log.Panicln("Error decoding body:", err)
+						response = ui.MakeErrorResponse(http.StatusBadRequest,
+							fmt.Sprintf("An error occured parsing payment: %v", req.Body))
+						ui.Respond(res, response)
+						return
+					}
+					err = c.CreatePayment(payment)
+					if err != nil {
+						response = ui.MakeErrorResponse(http.StatusInternalServerError,
+							fmt.Sprintf("An error occured creating payment: %v", err))
+						ui.Respond(res, response)
+						return
+					}
+					response = ui.CreateResponse(http.StatusCreated, "", nil)
+					ui.RespondWithOptions(res, response)
+					return
+				}
 			}
-			response = ui.CreateResponse(http.StatusCreated, "", id)
-		}
-		ui.Respond(res, response)
-	})
-}
-
-func paymentsHandler(c controller.Controller) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		var response ui.Response
-		if req.Method == "OPTIONS" {
-			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
-			return
-		}
-		if req.Method == "POST" {
-			var t model.Payment
-			err := json.NewDecoder(req.Body).Decode(&t)
-			if err != nil {
-				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(http.StatusBadRequest,
-					fmt.Sprintf("An error occured parsing payment: %v", req.Body))
-				ui.Respond(res, response)
-				return
-			}
-			err = c.CreatePayment(t)
-			if err != nil {
-				response = ui.MakeErrorResponse(http.StatusInternalServerError,
-					fmt.Sprintf("An error occured creating payment: %v", err))
-				ui.Respond(res, response)
-				return
-			}
-			response = ui.CreateResponse(http.StatusCreated, "", nil)
-			ui.RespondWithOptions(res, response)
-		} else if req.Method == "GET" {
-			// remove trailing slash
-			cleanPath := path.Clean(req.URL.Path)
-			pathParams := strings.Split(cleanPath[1:], "/")
-			id, err := strconv.ParseInt(pathParams[1], 10, 64)
-			if err != nil {
-				log.Panicln(err)
-				response = ui.MakeErrorResponse(http.StatusBadRequest,
-					fmt.Sprintf("An error occured parsing creditor id %v",
-						pathParams[1]))
-				ui.Respond(res, response)
-				return
-			}
-			payments, err := c.GetPaymentsByCreditor(id)
-			if err != nil {
-				response = ui.MakeErrorResponse(http.StatusInternalServerError,
-					fmt.Sprintf("An error occured getting payments by creditor with id %v:",
-						id, err))
-				ui.Respond(res, response)
-				return
-			}
-			response = ui.CreateResponse(http.StatusOK, "", payments)
-
-			ui.Respond(res, response)
-		}
-	})
-}
-
-func creditsHandler(c controller.Controller) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		var response ui.Response
-		if req.Method == "OPTIONS" {
-			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response)
-			return
-		}
-		if req.Method == "POST" {
-			var t model.Credit
-			err := json.NewDecoder(req.Body).Decode(&t)
-			if err != nil {
-				log.Panicln("Error decoding body:", err)
-				response = ui.MakeErrorResponse(http.StatusBadRequest,
-					fmt.Sprintf("An error occured parsing credit: %v", req.Body))
-				ui.Respond(res, response)
-				return
-			}
-			err = c.CreateCredit(t)
-			if err != nil {
-				response = ui.MakeErrorResponse(http.StatusInternalServerError,
-					fmt.Sprintf("An error occured creating credit: %v", err))
-				ui.Respond(res, response)
-				return
-			}
-			response = ui.CreateResponse(http.StatusCreated, "", nil)
-			ui.RespondWithOptions(res, response)
-		} else if req.Method == "GET" {
-			// remove trailing slash
-			cleanPath := path.Clean(req.URL.Path)
-			pathParams := strings.Split(cleanPath[1:], "/")
-			id, err := strconv.ParseInt(pathParams[1], 10, 64)
-			if err != nil {
-				log.Panicln(err)
-				response = ui.MakeErrorResponse(http.StatusBadRequest,
-					fmt.Sprintf("An error occured parsing creditor id %v",
-						pathParams[1]))
-				ui.Respond(res, response)
-				return
-			}
-			credits, err := c.GetCreditsByCreditor(id)
-			if err != nil {
-				response = ui.MakeErrorResponse(http.StatusInternalServerError,
-					fmt.Sprintf("An error occured getting credits by creditor with id %v:",
-						id, err))
-				ui.Respond(res, response)
-				return
-			}
-			response = ui.CreateResponse(http.StatusOK, "", credits)
-			ui.Respond(res, response)
 		}
 	})
 }

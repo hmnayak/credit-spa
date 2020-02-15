@@ -211,6 +211,40 @@ func (p *PostgresDb) GetRoutes() ([]string, error) {
 	return r, nil
 }
 
+// GetCustomersOnRoute returns all customers on a routes
+func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
+	creditors := []*model.Customer{}
+	query := `
+		SELECT id, full_name, search_name, delivery_route, credit_limit
+		FROM customer
+		WHERE delivery_route=$1
+		ORDER BY search_name
+	`
+	rows, err := p.dbConn.Query(query, r)
+	if err != nil {
+		return creditors, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c model.Customer
+		if err := rows.Scan(&c.ID, &c.FullName, &c.SearchName, &c.DeliveryRoute, &c.CreditLimit); err != nil {
+			log.Panicln("error scanning creditor row:", err)
+		}
+		creditors = append(creditors, &c)
+	}
+
+	for _, c := range creditors {
+		due, err := p.GetDueAmount(*c)
+		if err != nil {
+			log.Println("Error getting due amount:", err)
+		}
+		c.DueAmount = due
+	}
+
+	return creditors, nil
+}
+
 // GetAllCustomers gets the list of all customers
 func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	customers := make([]*model.Customer, 0)
@@ -259,6 +293,12 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 		return &c, err
 	}
 
+	due, err := p.GetDueAmount(c)
+	if err != nil {
+		log.Println("Error getting due amount:", err)
+	}
+	c.DueAmount = due
+
 	return &c, nil
 }
 
@@ -295,7 +335,6 @@ func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 		VALUES ($1, $2, $3, $4)
 		RETURNING id
 	`
-	log.Println("Customer to create:", c)
 	err := p.dbConn.QueryRow(query,
 		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit).Scan(&newID)
 	return newID, err
@@ -358,23 +397,6 @@ func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
 	dueAmount = sumCredits - sumPayments
 
 	return dueAmount, nil
-}
-
-// GetCustomersOnRoute returns all customers on a routes
-func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
-	c := []*model.Customer{}
-	query := `
-		SELECT id, full_name, search_name, delivery_route
-		FROM customer
-		WHERE delivery_route=$1
-		ORDER BY search_name
-	`
-	err := p.dbConn.Select(&c, query, r)
-	if err != nil {
-		return c, err
-	}
-
-	return c, nil
 }
 
 // GetCreditsByCustomer gets all credits received by a customer
@@ -461,6 +483,7 @@ func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
 			return defaulters, err
 		}
 		if due > float64(c.CreditLimit) {
+			c.DueAmount = due
 			defaulters = append(defaulters, c)
 		}
 	}
