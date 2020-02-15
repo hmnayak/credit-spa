@@ -57,6 +57,7 @@ func main() {
 func authenticate(c controller.Controller, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
 			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
@@ -67,19 +68,19 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			if err == http.ErrNoCookie {
 				response = ui.CreateResponse(http.StatusUnauthorized,
 					"No authentication token present in request cookies", nil)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 			response = ui.CreateResponse(http.StatusBadRequest,
 				"An authentication token needs to be present in request cookies", nil)
-			ui.Respond(res, response)
+			ui.Respond(res, response, origin)
 			return
 		}
 		auth, err := c.ValidateUser(t.Value)
 		if err != nil {
 			response = ui.CreateResponse(http.StatusUnauthorized,
 				"Invalid authentication token", nil)
-			ui.Respond(res, response)
+			ui.Respond(res, response, origin)
 			return
 		}
 		if auth == "r" {
@@ -91,7 +92,7 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			case "PATCH":
 				response = ui.CreateResponse(http.StatusUnauthorized,
 					"Credentials not authorized to perform the operation", nil)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 		}
@@ -102,8 +103,8 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 func loginHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
-			origin := req.Header.Get("Origin")
 			response = ui.CreateResponse(http.StatusOK, "", nil)
 			ui.RespondWithOptions(res, response, origin)
 			return
@@ -116,7 +117,7 @@ func loginHandler(c controller.Controller) http.Handler {
 				response = ui.MakeErrorResponse(http.StatusBadRequest,
 					fmt.Sprintf("Error decoding credentials from request body: %v", req.Body))
 
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 
@@ -127,7 +128,7 @@ func loginHandler(c controller.Controller) http.Handler {
 				response = ui.MakeErrorResponse(http.StatusUnauthorized,
 					fmt.Sprintf("Unable to login with credentials"))
 
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 
@@ -138,7 +139,7 @@ func loginHandler(c controller.Controller) http.Handler {
 				Value: token.Token,
 				Path:  "/",
 			})
-			ui.Respond(res, response)
+			ui.Respond(res, response, origin)
 		}
 		if req.Method == "DELETE" {
 			var response ui.Response
@@ -148,12 +149,12 @@ func loginHandler(c controller.Controller) http.Handler {
 				if err == http.ErrNoCookie {
 					response = ui.CreateResponse(http.StatusUnauthorized,
 						"No authentication token present in request cookies", nil)
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 					return
 				}
 				response = ui.CreateResponse(http.StatusBadRequest,
 					"An authentication token needs to be present in request cookies", nil)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 
@@ -161,11 +162,11 @@ func loginHandler(c controller.Controller) http.Handler {
 			if err != nil {
 				response = ui.CreateResponse(http.StatusInternalServerError,
 					"Error logging out user", nil)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 			response = ui.CreateResponse(http.StatusAccepted, "User logged out successfully", nil)
-			ui.Respond(res, response)
+			ui.Respond(res, response, origin)
 			return
 		}
 	})
@@ -174,6 +175,7 @@ func loginHandler(c controller.Controller) http.Handler {
 func routesHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
 			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
@@ -210,13 +212,14 @@ func routesHandler(c controller.Controller) http.Handler {
 				response = ui.CreateResponse(http.StatusOK, "", customers)
 			}
 		}
-		ui.Respond(res, response)
+		ui.Respond(res, response, origin)
 	})
 }
 
 func customersHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
 			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
@@ -240,7 +243,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusOK, "", creditors)
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 				case 2:
 					// customers?route={r}&name={n}
 					route := q.Get("route")
@@ -252,7 +255,7 @@ func customersHandler(c controller.Controller) http.Handler {
 								route, name))
 					}
 					response = ui.CreateResponse(http.StatusOK, "", creditor)
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 				}
 			} else if len(pathParams) == 2 {
 				// customers/{id}
@@ -271,7 +274,7 @@ func customersHandler(c controller.Controller) http.Handler {
 					return
 				}
 				response = ui.CreateResponse(http.StatusOK, "", creditor)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 			} else if len(pathParams) == 3 {
 				// customers/{id}/credits or customers/{id}/payments
 				id, err := strconv.ParseInt(pathParams[1], 10, 64)
@@ -290,7 +293,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusOK, "", credits)
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 				} else if pathParams[2] == "payments" {
 					payments, err := c.GetPaymentsByCreditor(id)
 					if err != nil {
@@ -300,7 +303,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusOK, "", payments)
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 				}
 			}
 		} else if req.Method == "POST" {
@@ -313,7 +316,7 @@ func customersHandler(c controller.Controller) http.Handler {
 					response = ui.MakeErrorResponse(http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing request body: %v", req.Body))
 
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 					return
 				}
 				id, err := c.CreateCreditor(creditor)
@@ -321,11 +324,11 @@ func customersHandler(c controller.Controller) http.Handler {
 					response = ui.MakeErrorResponse(http.StatusInternalServerError,
 						fmt.Sprintf("An error occured creating creditor: %v", err))
 
-					ui.Respond(res, response)
+					ui.Respond(res, response, origin)
 					return
 				}
 				response = ui.CreateResponse(http.StatusCreated, "", id)
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			} else if len(pathParams) == 3 {
 				// creditors/{id}/credits or creditors/{id}/payments
@@ -354,14 +357,14 @@ func customersHandler(c controller.Controller) http.Handler {
 						log.Panicln("Error decoding body:", err)
 						response = ui.MakeErrorResponse(http.StatusBadRequest,
 							fmt.Sprintf("An error occured parsing payment: %v", req.Body))
-						ui.Respond(res, response)
+						ui.Respond(res, response, origin)
 						return
 					}
 					err = c.CreatePayment(payment)
 					if err != nil {
 						response = ui.MakeErrorResponse(http.StatusInternalServerError,
 							fmt.Sprintf("An error occured creating payment: %v", err))
-						ui.Respond(res, response)
+						ui.Respond(res, response, origin)
 						return
 					}
 					response = ui.CreateResponse(http.StatusCreated, "", nil)
@@ -376,16 +379,17 @@ func customersHandler(c controller.Controller) http.Handler {
 func defaultersHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
+		origin := req.Header.Get("Origin")
 		if req.Method == "GET" {
 			d, err := c.GetAllDefaulters()
 			if err != nil {
 				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					"An error occurred getting all defaulters")
-				ui.Respond(res, response)
+				ui.Respond(res, response, origin)
 				return
 			}
 			response = ui.CreateResponse(http.StatusOK, "", d)
-			ui.Respond(res, response)
+			ui.Respond(res, response, origin)
 		}
 	})
 }

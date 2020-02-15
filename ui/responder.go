@@ -6,9 +6,9 @@ import (
 )
 
 // Respond performs a http response with json encoding of payload if provided
-func Respond(w http.ResponseWriter, res Response) {
+func Respond(w http.ResponseWriter, res Response, origin string) {
 	w.Header().Set("content-type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
@@ -22,7 +22,7 @@ func Respond(w http.ResponseWriter, res Response) {
 // RespondWithOptions responds with access control allow POST, OPTIONS methods in response headers
 func RespondWithOptions(w http.ResponseWriter, res Response, origin string) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, DELETE")
-	w.Header().Set("Access-Control-Allow-Origin", "http://13.233.83.14:8001")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
@@ -49,5 +49,5 @@ func MakeErrorResponse(status int, message string) Response {
 // RespondError responsds to http request with an error response
 func RespondError(w http.ResponseWriter, errorcode int, message string) {
 	r := Response{HTTPStatus: errorcode, Message: message, Payload: nil}
-	Respond(w, r)
+	Respond(w, r, "")
 }
