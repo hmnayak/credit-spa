@@ -10,19 +10,5 @@ type Customer struct {
 	Payments      []Payment `db:"payments" json:"-"`
 	DueAmount     float64   `db:"due_amount" json:"dueamount"`
 	CreditLimit   int       `db:"credit_limit" json:"creditlimit,string"`
-}
-
-// CalculateDueAmount is a helper method to calculate the total due amount for a customer
-func (customer *Customer) CalculateDueAmount() {
-	sumCredits := float64(0)
-	for _, c := range customer.Credits {
-		sumCredits += c.Amount
-	}
-
-	sumPayments := float64(0)
-	for _, p := range customer.Payments {
-		sumPayments += p.Amount
-	}
-
-	customer.DueAmount = sumCredits - sumPayments
+	LatestCredit  float64   `json:"latestcredit"`
 }

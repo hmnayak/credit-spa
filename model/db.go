@@ -14,7 +14,11 @@ type Db interface {
 	GetCustomerByNameRoute(string, string) (*Customer, error)
 	CreateCustomer(Customer) (int64, error)
 	CreateCredit(Credit) error
+	UpdateCredit(Credit) error
+	DeleteCredit(int) error
 	CreatePayment(Payment) error
+	UpdatePayment(Payment) error
+	DeletePayment(int) error
 	GetCreditsByCustomer(int64) ([]*Credit, error)
 	GetPaymentsByCustomer(int64) ([]*Payment, error)
 	GetAllDefaulters() ([]*Customer, error)

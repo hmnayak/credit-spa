@@ -196,6 +196,19 @@ func (p *PostgresDb) ValidateUser(token string) (model.AuthToken, error) {
 	return user, err
 }
 
+// CreateCustomer creates a new customer in customer table
+func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
+	var newID int64
+	query := `
+		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
+		VALUES ($1, $2, $3, $4)
+		RETURNING id
+	`
+	err := p.dbConn.QueryRow(query,
+		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit).Scan(&newID)
+	return newID, err
+}
+
 // GetRoutes returns all delivery routes.
 func (p *PostgresDb) GetRoutes() ([]string, error) {
 	r := []string{}
@@ -247,37 +260,25 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 
 // GetAllCustomers gets the list of all customers
 func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
-	customers := make([]*model.Customer, 0)
+	creditors := []*model.Customer{}
 	query := `
 		SELECT id, full_name, search_name, delivery_route, credit_limit 
 		FROM customer
 	`
-	err := p.dbConn.Select(&customers, query)
+	err := p.dbConn.Select(&creditors, query)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, c := range customers {
-		credits := []model.Credit{}
-		creditsStmt := `
-			SELECT amount, date
-			FROM credit
-			WHERE customer_id=$1
-		`
-		err = p.dbConn.Select(&credits, creditsStmt, c.ID)
-		c.Credits = credits
-
-		payments := []model.Payment{}
-		paymentsStmt := `
-			SELECT amount, date
-			FROM payment
-			WHERE customer_id=$1
-		`
-		err = p.dbConn.Select(&payments, paymentsStmt, c.ID)
-		c.Payments = payments
+	for _, c := range creditors {
+		due, err := p.GetDueAmount(*c)
+		if err != nil {
+			log.Println("Error getting due amount:", err)
+		}
+		c.DueAmount = due
 	}
 
-	return customers, err
+	return creditors, err
 }
 
 // GetCustomerByID gets a single customer with the id provided
@@ -296,8 +297,16 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 	due, err := p.GetDueAmount(c)
 	if err != nil {
 		log.Println("Error getting due amount:", err)
+		return &c, err
 	}
 	c.DueAmount = due
+
+	credits, err := p.GetCreditsByCustomer(id)
+	if err != nil {
+		log.Println("Error getting latest credit:", err)
+		return &c, err
+	}
+	c.LatestCredit = credits[len(credits)-1].Amount
 
 	return &c, nil
 }
@@ -327,19 +336,6 @@ func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.C
 	return &c, nil
 }
 
-// CreateCustomer creates a new customer in customer table
-func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
-	var newID int64
-	query := `
-		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
-		VALUES ($1, $2, $3, $4)
-		RETURNING id
-	`
-	err := p.dbConn.QueryRow(query,
-		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit).Scan(&newID)
-	return newID, err
-}
-
 // CreateCredit creates a new credit entry
 func (p *PostgresDb) CreateCredit(t model.Credit) error {
 	query := `
@@ -354,6 +350,69 @@ func (p *PostgresDb) CreateCredit(t model.Credit) error {
 	return nil
 }
 
+// GetCreditsByCustomer gets all credits received by a customer
+func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Credit, error) {
+	credits := []*model.Credit{}
+	query := `
+		SELECT id, customer_id, date, amount, remarks
+		FROM credit
+		WHERE customer_id=$1
+		ORDER BY date
+	`
+	rows, err := p.dbConn.Query(query, customerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no payments found for customer id: %v \n")
+		}
+		return credits, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c model.Credit
+		if err := rows.Scan(&c.ID, &c.CustomerID, &c.Date, &c.Amount, &c.Remarks); err != nil {
+			log.Panicln("error scanning payment row:", err)
+		}
+		date, err := time.Parse(time.RFC3339, c.Date)
+		if err != nil {
+			log.Println("error parsing date: ", err)
+		}
+		c.Date = date.Format("02-01-2006")
+		credits = append(credits, &c)
+	}
+
+	return credits, nil
+}
+
+// UpdateCredit updates an existing credit
+func (p *PostgresDb) UpdateCredit(c model.Credit) error {
+	query := `
+		UPDATE credit 
+		SET amount=$1
+		WHERE id=$2
+	`
+	_, err := p.dbConn.Exec(query, c.Amount, c.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteCredit deletes an existing payment
+func (p *PostgresDb) DeleteCredit(id int) error {
+	query := `
+		DELETE FROM credit 
+		WHERE id=$1
+	`
+	_, err := p.dbConn.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreatePayment creates a new payment entry
 func (p *PostgresDb) CreatePayment(t model.Payment) error {
 	query := `
@@ -361,6 +420,70 @@ func (p *PostgresDb) CreatePayment(t model.Payment) error {
 		VALUES ($1, $2, $3, $4, $5) 
 	`
 	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Mode, t.Remarks)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetPaymentsByCustomer gets all payments made by a customer
+func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Payment, error) {
+	payments := []*model.Payment{}
+	query := `
+		SELECT id, customer_id, date, amount, mode, remarks
+		FROM payment
+		WHERE customer_id=$1
+		ORDER BY date
+	`
+
+	rows, err := p.dbConn.Query(query, customerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no payments found for customer id: %v \n")
+		}
+		return payments, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p model.Payment
+		if err := rows.Scan(&p.ID, &p.CustomerID, &p.Date, &p.Amount, &p.Mode, &p.Remarks); err != nil {
+			log.Panicln("error scanning payment row:", err)
+		}
+		date, err := time.Parse(time.RFC3339, p.Date)
+		if err != nil {
+			log.Println("error parsing date: ", err)
+		}
+		p.Date = date.Format("02-01-2006")
+		payments = append(payments, &p)
+	}
+
+	return payments, nil
+}
+
+// UpdatePayment updates an existing payment
+func (p *PostgresDb) UpdatePayment(pmt model.Payment) error {
+	query := `
+		UPDATE payment 
+		SET amount=$1 
+		WHERE id=$2
+	`
+	_, err := p.dbConn.Exec(query, pmt.Amount, pmt.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeletePayment deletes an existing payment
+func (p *PostgresDb) DeletePayment(id int) error {
+	query := `
+		DELETE FROM payment 
+		WHERE id=$1
+	`
+	_, err := p.dbConn.Exec(query, id)
 	if err != nil {
 		return err
 	}
@@ -397,73 +520,6 @@ func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
 	dueAmount = sumCredits - sumPayments
 
 	return dueAmount, nil
-}
-
-// GetCreditsByCustomer gets all credits received by a customer
-func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Credit, error) {
-	credits := []*model.Credit{}
-	query := `
-		SELECT customer_id, date, amount, remarks
-		FROM credit
-		WHERE customer_id=$1
-	`
-	rows, err := p.dbConn.Query(query, customerID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("no payments found for customer id: %v \n")
-		}
-		return credits, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var c model.Credit
-		if err := rows.Scan(&c.CustomerID, &c.Date, &c.Amount, &c.Remarks); err != nil {
-			log.Panicln("error scanning payment row:", err)
-		}
-		date, err := time.Parse(time.RFC3339, c.Date)
-		if err != nil {
-			log.Println("error parsing date: ", err)
-		}
-		c.Date = date.Format("02-01-2006")
-		credits = append(credits, &c)
-	}
-
-	return credits, nil
-}
-
-// GetPaymentsByCustomer gets all payments made by a customer
-func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Payment, error) {
-	payments := []*model.Payment{}
-	query := `
-		SELECT customer_id, date, amount, mode, remarks
-		FROM payment
-		WHERE customer_id=$1
-	`
-
-	rows, err := p.dbConn.Query(query, customerID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("no payments found for customer id: %v \n")
-		}
-		return payments, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var p model.Payment
-		if err := rows.Scan(&p.CustomerID, &p.Date, &p.Amount, &p.Mode, &p.Remarks); err != nil {
-			log.Panicln("error scanning payment row:", err)
-		}
-		date, err := time.Parse(time.RFC3339, p.Date)
-		if err != nil {
-			log.Println("error parsing date: ", err)
-		}
-		p.Date = date.Format("02-01-2006")
-		payments = append(payments, &p)
-	}
-
-	return payments, nil
 }
 
 // GetAllDefaulters gets a list of creditors that are defaulting on payments

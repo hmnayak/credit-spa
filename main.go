@@ -60,7 +60,7 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
+			ui.RespondWithOptions(res, response, origin)
 			return
 		}
 		t, err := req.Cookie("token")
@@ -83,17 +83,18 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			ui.Respond(res, response, origin)
 			return
 		}
-		if auth == "r" {
-			switch req.Method {
-			case "OPTIONS":
-			case "PUT":
-			case "POST":
-			case "DELETE":
-			case "PATCH":
-				response = ui.CreateResponse(http.StatusUnauthorized,
-					"Credentials not authorized to perform the operation", nil)
-				ui.Respond(res, response, origin)
-				return
+		if auth == "c" {
+			// extract path parameters
+			cleanPath := path.Clean(req.URL.Path)
+			pathParams := strings.Split(cleanPath[1:], "/")
+			if len(pathParams) >= 3 && pathParams[2] == "payments" {
+				switch req.Method {
+				case "OPTIONS", "PUT", "POST", "DELETE", "PATCH":
+					response = ui.CreateResponse(http.StatusUnauthorized,
+						"Credentials not authorized to perform the operation", nil)
+					ui.Respond(res, response, origin)
+					return
+				}
 			}
 		}
 		h.ServeHTTP(res, req)
@@ -178,7 +179,7 @@ func routesHandler(c controller.Controller) http.Handler {
 		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
+			ui.RespondWithOptions(res, response, origin)
 			return
 		}
 		if req.Method == "GET" {
@@ -222,7 +223,7 @@ func customersHandler(c controller.Controller) http.Handler {
 		origin := req.Header.Get("Origin")
 		if req.Method == "OPTIONS" {
 			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
+			ui.RespondWithOptions(res, response, origin)
 			return
 		}
 		// extract path parameters
@@ -348,7 +349,7 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusCreated, "", nil)
-					ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
+					ui.RespondWithOptions(res, response, origin)
 					return
 				} else if pathParams[2] == "payments" {
 					var payment model.Payment
@@ -368,9 +369,86 @@ func customersHandler(c controller.Controller) http.Handler {
 						return
 					}
 					response = ui.CreateResponse(http.StatusCreated, "", nil)
-					ui.RespondWithOptions(res, response, req.Header.Get("Origin"))
+					ui.RespondWithOptions(res, response, origin)
 					return
 				}
+			}
+		} else if req.Method == "PUT" {
+			// creditors/{id}/credits or creditors/{id}/payments
+			if pathParams[2] == "credits" {
+				var credit model.Credit
+				err := json.NewDecoder(req.Body).Decode(&credit)
+				if err != nil {
+					log.Panicln("Error decoding body:", err)
+					ui.RespondError(res, http.StatusBadRequest,
+						fmt.Sprintf("An error occured parsing credit: %v", req.Body))
+					return
+				}
+				err = c.UpdateCredit(credit)
+				if err != nil {
+					ui.RespondError(res, http.StatusInternalServerError,
+						fmt.Sprintf("An error occured creating credit: %v", err))
+					return
+				}
+				response = ui.CreateResponse(http.StatusAccepted, "", nil)
+				ui.RespondWithOptions(res, response, origin)
+				return
+			} else if pathParams[2] == "payments" {
+				var payment model.Payment
+				err := json.NewDecoder(req.Body).Decode(&payment)
+				if err != nil {
+					log.Panicln("Error decoding body:", err)
+					response = ui.MakeErrorResponse(http.StatusBadRequest,
+						fmt.Sprintf("An error occured parsing payment: %v", req.Body))
+					ui.Respond(res, response, origin)
+					return
+				}
+				err = c.UpdatePayment(payment)
+				if err != nil {
+					response = ui.MakeErrorResponse(http.StatusInternalServerError,
+						fmt.Sprintf("An error occured updating payment: %v", err))
+					ui.Respond(res, response, origin)
+					return
+				}
+				response = ui.CreateResponse(http.StatusCreated, "", nil)
+				ui.RespondWithOptions(res, response, origin)
+				return
+			}
+		} else if req.Method == "DELETE" {
+			// creditors/{id}/credits or creditors/{id}/payments
+			if pathParams[2] == "credits" {
+				id, err := strconv.Atoi(pathParams[3])
+				if err != nil {
+					ui.RespondError(res, http.StatusBadRequest,
+						fmt.Sprintf("Unable to parse credit id: %v", err))
+					return
+				}
+				err = c.DeleteCredit(id)
+				if err != nil {
+					ui.RespondError(res, http.StatusInternalServerError,
+						fmt.Sprintf("An error occured creating credit: %v", err))
+					return
+				}
+				response = ui.CreateResponse(http.StatusAccepted, "", nil)
+				ui.RespondWithOptions(res, response, origin)
+				return
+			} else if pathParams[2] == "payments" {
+				id, err := strconv.Atoi(pathParams[3])
+				if err != nil {
+					ui.RespondError(res, http.StatusBadRequest,
+						fmt.Sprintf("Unable to parse credit id: %v", err))
+					return
+				}
+				err = c.DeletePayment(id)
+				if err != nil {
+					response = ui.MakeErrorResponse(http.StatusInternalServerError,
+						fmt.Sprintf("An error occured updating payment: %v", err))
+					ui.Respond(res, response, origin)
+					return
+				}
+				response = ui.CreateResponse(http.StatusCreated, "", nil)
+				ui.RespondWithOptions(res, response, origin)
+				return
 			}
 		}
 	})

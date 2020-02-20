@@ -140,10 +140,6 @@ func (c *Controller) GetAllCreditors() ([]*model.Customer, error) {
 		return creditors, err
 	}
 
-	for _, c := range creditors {
-		c.CalculateDueAmount()
-	}
-
 	return creditors, nil
 }
 
@@ -187,6 +183,36 @@ func (c *Controller) CreateCredit(credit model.Credit) error {
 	return err
 }
 
+// GetCreditsByCreditor returns all payments made by given creditor
+func (c *Controller) GetCreditsByCreditor(id int64) ([]*model.Credit, error) {
+	credits, err := c.model.Db.GetCreditsByCustomer(id)
+	if err != nil {
+		log.Println("Error GetCreditsByCreditor:", err)
+	}
+
+	return credits, err
+}
+
+// UpdateCredit updates an existing new credit transaction
+func (c *Controller) UpdateCredit(credit model.Credit) error {
+	err := c.model.Db.UpdateCredit(credit)
+	if err != nil {
+		log.Println("Error UpdateCredit:", err)
+	}
+
+	return err
+}
+
+// DeleteCredit deletes an existing credit transaction
+func (c *Controller) DeleteCredit(id int) error {
+	err := c.model.Db.DeleteCredit(id)
+	if err != nil {
+		log.Println("Error UpdateCredit:", err)
+	}
+
+	return err
+}
+
 // CreatePayment stores a new payment transaction
 func (c *Controller) CreatePayment(payment model.Payment) error {
 	err := c.model.Db.CreatePayment(payment)
@@ -207,14 +233,24 @@ func (c *Controller) GetPaymentsByCreditor(id int64) ([]*model.Payment, error) {
 	return p, err
 }
 
-// GetCreditsByCreditor returns all payments made by given creditor
-func (c *Controller) GetCreditsByCreditor(id int64) ([]*model.Credit, error) {
-	credits, err := c.model.Db.GetCreditsByCustomer(id)
+// UpdatePayment updates an existing payment transaction
+func (c *Controller) UpdatePayment(payment model.Payment) error {
+	err := c.model.Db.UpdatePayment(payment)
 	if err != nil {
-		log.Println("Error GetCreditsByCreditor:", err)
+		log.Println("Error UpdatePayment:", err)
 	}
 
-	return credits, err
+	return err
+}
+
+// DeletePayment deletes an existing payment transaction
+func (c *Controller) DeletePayment(id int) error {
+	err := c.model.Db.DeletePayment(id)
+	if err != nil {
+		log.Println("Error UpdatePayment:", err)
+	}
+
+	return err
 }
 
 // GetAllDefaulters returns all creditors whose due amount exceeds their credit limit
