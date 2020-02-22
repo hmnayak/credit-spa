@@ -229,7 +229,7 @@ func (p *PostgresDb) GetRoutes() ([]string, error) {
 func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 	creditors := []*model.Customer{}
 	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit
+		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle
 		FROM customer
 		WHERE delivery_route=$1
 		ORDER BY search_name
@@ -242,7 +242,7 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 
 	for rows.Next() {
 		var c model.Customer
-		if err := rows.Scan(&c.ID, &c.FullName, &c.SearchName, &c.DeliveryRoute, &c.CreditLimit); err != nil {
+		if err := rows.Scan(&c.ID, &c.FullName, &c.SearchName, &c.DeliveryRoute, &c.CreditLimit, &c.PaymentCycle); err != nil {
 			log.Panicln("error scanning creditor row:", err)
 		}
 		creditors = append(creditors, &c)
@@ -263,7 +263,7 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	creditors := []*model.Customer{}
 	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit 
+		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle
 		FROM customer
 	`
 	err := p.dbConn.Select(&creditors, query)
@@ -286,7 +286,7 @@ func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit  
+		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle  
 		FROM customer 
 		WHERE id=$1
 	`
@@ -318,7 +318,7 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.Customer, error) {
 	c := model.Customer{}
 	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit  
+		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle  
 		FROM customer 
 		WHERE delivery_route=$1 AND search_name=$2
 	`
