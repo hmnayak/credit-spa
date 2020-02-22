@@ -10,7 +10,7 @@ type Customer struct {
 	Payments      []Payment `db:"payments" json:"-"`
 	DueAmount     float64   `db:"due_amount" json:"dueamount"`
 	CreditLimit   int       `db:"credit_limit" json:"creditlimit,string"`
-	PaymentCycle  int       `db:"pay_cycle" json:"paycycle"`
+	PaymentCycle  int       `db:"pay_cycle" json:"paycycle,string"`
 	LatestCredit  float64   `json:"latestcredit"`
 }
 

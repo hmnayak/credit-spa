@@ -78,11 +78,12 @@ func (p *PostgresDb) createTable() error {
 
 	createCustomerTable := `
 		CREATE TABLE IF NOT EXISTS customer (
-			id 			  	SERIAL        NOT NULL PRIMARY KEY,
+			id 			  	SERIAL  NOT NULL PRIMARY KEY,
 			full_name       VARCHAR	NOT NULL,
 			search_name	  	VARCHAR NOT NULL,
 			delivery_route 	VARCHAR,
 			credit_limit	integer,
+			pay_cycle		integer,
 			UNIQUE (search_name, delivery_route)
 		)
 	`
@@ -200,12 +201,12 @@ func (p *PostgresDb) ValidateUser(token string) (model.AuthToken, error) {
 func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
 	var newID int64
 	query := `
-		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit) 
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit, pay_cycle) 
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
 	`
 	err := p.dbConn.QueryRow(query,
-		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit).Scan(&newID)
+		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit, c.PaymentCycle).Scan(&newID)
 	return newID, err
 }
 
