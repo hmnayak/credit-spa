@@ -459,7 +459,7 @@ func defaultersHandler(c controller.Controller) http.Handler {
 		var response ui.Response
 		origin := req.Header.Get("Origin")
 		if req.Method == "GET" {
-			d, err := c.GetAllDefaulters()
+			d, err := c.GetAllDefaultersNew()
 			if err != nil {
 				response = ui.MakeErrorResponse(http.StatusInternalServerError,
 					"An error occurred getting all defaulters")

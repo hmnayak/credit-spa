@@ -22,4 +22,5 @@ type Db interface {
 	GetCreditsByCustomer(int64) ([]*Credit, error)
 	GetPaymentsByCustomer(int64) ([]*Payment, error)
 	GetAllDefaulters() ([]*Customer, error)
+	GetAllDefaultersNew() ([]*Defaulter, error)
 }

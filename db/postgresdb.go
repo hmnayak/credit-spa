@@ -248,7 +248,7 @@ func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
 	}
 
 	for _, c := range creditors {
-		due, err := p.GetDueAmount(*c)
+		due, err := p.GetDueAmount(c.ID)
 		if err != nil {
 			log.Println("Error getting due amount:", err)
 		}
@@ -271,7 +271,7 @@ func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
 	}
 
 	for _, c := range creditors {
-		due, err := p.GetDueAmount(*c)
+		due, err := p.GetDueAmount(c.ID)
 		if err != nil {
 			log.Println("Error getting due amount:", err)
 		}
@@ -294,7 +294,7 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 		return &c, err
 	}
 
-	due, err := p.GetDueAmount(c)
+	due, err := p.GetDueAmount(c.ID)
 	if err != nil {
 		log.Println("Error getting due amount:", err)
 		return &c, err
@@ -306,7 +306,9 @@ func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
 		log.Println("Error getting latest credit:", err)
 		return &c, err
 	}
-	c.LatestCredit = credits[len(credits)-1].Amount
+	if len(credits) > 0 {
+		c.LatestCredit = credits[len(credits)-1].Amount
+	}
 
 	return &c, nil
 }
@@ -327,7 +329,7 @@ func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.C
 		return &c, err
 	}
 
-	due, err := p.GetDueAmount(c)
+	due, err := p.GetDueAmount(c.ID)
 	if err != nil {
 		log.Println("Error getting due amount:", err)
 	}
@@ -492,28 +494,28 @@ func (p *PostgresDb) DeletePayment(id int) error {
 }
 
 // GetDueAmount returns the due amount for a customer
-func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
+func (p *PostgresDb) GetDueAmount(customerID int) (float64, error) {
 	var dueAmount float64
 	paymentsQuery := `
-		SELECT SUM(amount) 
+		SELECT COALESCE(SUM(amount), 0) 
 		FROM payment 
 		WHERE customer_id=$1 
 		GROUP BY customer_id
 	`
 	var sumPayments float64
-	err := p.dbConn.Get(&sumPayments, paymentsQuery, c.ID)
+	err := p.dbConn.Get(&sumPayments, paymentsQuery, customerID)
 	if err != nil {
 		log.Println("Error getting sum payments:", err)
 	}
 
 	creditsQuery := `	
-		SELECT SUM(amount) 
+		SELECT COALESCE(SUM(amount), 0) 
 		FROM credit 
 		WHERE customer_id=$1 
 		GROUP BY customer_id
 	`
 	var sumCredits float64
-	err = p.dbConn.Get(&sumCredits, creditsQuery, c.ID)
+	err = p.dbConn.Get(&sumCredits, creditsQuery, customerID)
 	if err != nil {
 		log.Println("Error getting sum credits:", err)
 	}
@@ -522,7 +524,7 @@ func (p *PostgresDb) GetDueAmount(c model.Customer) (float64, error) {
 	return dueAmount, nil
 }
 
-// GetAllDefaulters gets a list of creditors that are defaulting on payments
+// GetAllDefaulters gets a list of creditors defaulting on payments
 func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
 	defaulters := []*model.Customer{}
 
@@ -533,7 +535,7 @@ func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
 	}
 
 	for _, c := range all {
-		due, err := p.GetDueAmount(*c)
+		due, err := p.GetDueAmount(c.ID)
 		if err != nil {
 			log.Println("Error getting due amount for customer:", err)
 			return defaulters, err
@@ -541,6 +543,159 @@ func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
 		if due > float64(c.CreditLimit) {
 			c.DueAmount = due
 			defaulters = append(defaulters, c)
+		}
+	}
+
+	return defaulters, nil
+}
+
+func (p *PostgresDb) getLastCreditDateByCreditor(c model.Customer) (string, error) {
+	var lastCreditDate string
+	query := `
+		SELECT date 
+		FROM credit 
+		WHERE customer_id=$1 
+		ORDER BY date DESC 
+		LIMIT 1
+	`
+	err := p.dbConn.Get(&lastCreditDate, query, c.ID)
+	if err != nil {
+		log.Println("Error getting last credit date:", err)
+		if err == sql.ErrNoRows {
+			err = nil
+		}
+	}
+	return lastCreditDate, err
+}
+
+func (p *PostgresDb) getLastPayDateByCreditor(c model.Customer) (string, error) {
+	var lastPayDate string
+	query := `
+		SELECT date 
+		FROM payment 
+		WHERE customer_id=$1 
+		ORDER BY date DESC 
+		LIMIT 1
+	`
+	err := p.dbConn.Get(&lastPayDate, query, c.ID)
+	if err != nil {
+		log.Println("Error getting last payment date:", err)
+		if err == sql.ErrNoRows {
+			err = nil
+		}
+	}
+	return lastPayDate, err
+}
+
+// GetAllDefaultersNew gets the set of defaulting creditors
+func (p *PostgresDb) GetAllDefaultersNew() ([]*model.Defaulter, error) {
+	defaulters := []*model.Defaulter{}
+
+	all, err := p.GetAllCustomers()
+	if err != nil {
+		log.Println("Error getting all customers: ", err)
+		return defaulters, err
+	}
+
+	potentials := []*model.Defaulter{}
+	for _, c := range all {
+		due, err := p.GetDueAmount(c.ID)
+		if err != nil {
+			log.Println("Error getting due amount for customer:", err)
+			return defaulters, err
+		}
+		if due > float64(c.CreditLimit) {
+			c.DueAmount = due
+			lastCreditDate, err := p.getLastCreditDateByCreditor(*c)
+			if err != nil {
+				return defaulters, err
+			}
+			lastPayDate, err := p.getLastPayDateByCreditor(*c)
+			if err != nil {
+				return defaulters, err
+			}
+			d := model.Defaulter{FullName: c.FullName, SearchName: c.SearchName,
+				DeliveryRoute: c.DeliveryRoute, DueAmount: c.DueAmount,
+				DueFrom:      lastCreditDate,
+				LastPaidOn:   lastPayDate,
+				DefaultCause: "Total due amount exceeds credit limit.",
+			}
+			potentials = append(potentials, &d)
+		}
+	}
+
+	query := `
+		SELECT DISTINCT ON (customer_id)
+			credit.customer_id, 
+			credit.date, 
+			credit.amount,
+			customer.pay_cycle, 
+			customer.full_name, 
+			customer.search_name,
+			customer.delivery_route
+		FROM credit
+		INNER JOIN customer on credit.customer_id = customer.id;
+	`
+
+	rows, err := p.dbConn.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("no payments found for customer id: %v \n")
+		}
+		return defaulters, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var d model.Defaulter
+		if err := rows.Scan(&d.ID, &d.DueFrom, &d.LatestCredit, &d.PayCycle, &d.FullName, &d.SearchName, &d.DeliveryRoute); err != nil {
+			log.Panicln("error scanning payment row:", err)
+		}
+		date, err := time.Parse(time.RFC3339, d.DueFrom)
+		if err != nil {
+			log.Println("error parsing date: ", err)
+		}
+		d.DueFrom = date.Format("02-01-2006")
+
+		potentials = append(potentials, &d)
+	}
+
+	query = `
+		SELECT 
+            COALESCE(SUM (amount), 0)
+        FROM
+            payment
+        WHERE TRUE
+            AND customer_id=$1
+            AND amount IN (
+                SELECT 
+                    amount
+                FROM
+                    payment
+                WHERE date > $2
+            )
+        GROUP BY
+            customer_id   
+	`
+	now := time.Now()
+	weekAgo := now.AddDate(0, 0, -7)
+	weekAgoStr := weekAgo.Format("2006-01-02")
+	for _, potential := range potentials {
+		var paymentsInCycle float64
+		err := p.dbConn.Get(&paymentsInCycle, query, potential.ID, weekAgoStr)
+		if err != nil {
+			log.Println("Error getting sum payments in pay cycle:", err)
+		}
+		potential.PaymentInCycle = paymentsInCycle
+		if potential.PaymentInCycle < potential.LatestCredit {
+			potential.DefaultCause = "Credit not repaid within payment cycle"
+			due, err := p.GetDueAmount(potential.ID)
+			if err != nil {
+				log.Println("Error getting due amount for customer:", err)
+				return defaulters, err
+			}
+			potential.DueAmount = due
+			defaulters = append(defaulters, potential)
 		}
 	}
 

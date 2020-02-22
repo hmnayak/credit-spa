@@ -262,3 +262,13 @@ func (c *Controller) GetAllDefaulters() ([]*model.Customer, error) {
 
 	return d, err
 }
+
+// GetAllDefaultersNew returns all creditors whose due amount exceeds their credit limit
+func (c *Controller) GetAllDefaultersNew() ([]*model.Defaulter, error) {
+	d, err := c.model.Db.GetAllDefaultersNew()
+	if err != nil {
+		log.Println("Error GetAllDefaultersNew:", err)
+	}
+
+	return d, err
+}
