@@ -313,7 +313,8 @@ func customersHandler(c controller.Controller) http.Handler {
 				var creditor model.Customer
 				err := json.NewDecoder(req.Body).Decode(&creditor)
 				if err != nil {
-					log.Panicln("Error decoding body:", err)
+					log.Println("Error decoding body:", err)
+					log.Println("Request body:", req.Body)
 					response = ui.MakeErrorResponse(http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing request body: %v", req.Body))
 
@@ -337,7 +338,8 @@ func customersHandler(c controller.Controller) http.Handler {
 					var credit model.Credit
 					err := json.NewDecoder(req.Body).Decode(&credit)
 					if err != nil {
-						log.Panicln("Error decoding body:", err)
+						log.Println("Error decoding body:", err)
+						log.Println("Request body:", req.Body)
 						ui.RespondError(res, http.StatusBadRequest,
 							fmt.Sprintf("An error occured parsing credit: %v", req.Body))
 						return
@@ -355,9 +357,10 @@ func customersHandler(c controller.Controller) http.Handler {
 					var payment model.Payment
 					err := json.NewDecoder(req.Body).Decode(&payment)
 					if err != nil {
-						log.Panicln("Error decoding body:", err)
+						log.Println("Error decoding body:", err)
+						log.Println("Request body:", req.Body)
 						response = ui.MakeErrorResponse(http.StatusBadRequest,
-							fmt.Sprintf("An error occured parsing payment: %v", req.Body))
+							fmt.Sprintf("An error occured parsing payment data: %v", req.Body))
 						ui.Respond(res, response, origin)
 						return
 					}
@@ -379,7 +382,8 @@ func customersHandler(c controller.Controller) http.Handler {
 				var credit model.Credit
 				err := json.NewDecoder(req.Body).Decode(&credit)
 				if err != nil {
-					log.Panicln("Error decoding body:", err)
+					log.Println("Error decoding body:", err)
+					log.Println("Request body:", req.Body)
 					ui.RespondError(res, http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing credit: %v", req.Body))
 					return
@@ -397,7 +401,8 @@ func customersHandler(c controller.Controller) http.Handler {
 				var payment model.Payment
 				err := json.NewDecoder(req.Body).Decode(&payment)
 				if err != nil {
-					log.Panicln("Error decoding body:", err)
+					log.Println("Error decoding body:", err)
+					log.Println("Request body:", req.Body)
 					response = ui.MakeErrorResponse(http.StatusBadRequest,
 						fmt.Sprintf("An error occured parsing payment: %v", req.Body))
 					ui.Respond(res, response, origin)
