@@ -38,6 +38,8 @@ func main() {
 	}
 
 	c := controller.Controller{}
+
+	log.Println("Initializing controller with DB config:", config.DBConfig)
 	c.Init(config.DBConfig, config.AuthSecret)
 
 	mux := http.NewServeMux()
@@ -270,7 +272,7 @@ func customersHandler(c controller.Controller) http.Handler {
 				creditor, err := c.GetCreditorByID(id)
 				if err != nil {
 					ui.RespondError(res, http.StatusNoContent,
-						fmt.Sprintf("An error occured getting creditor with id %v:",
+						fmt.Sprintf("An error occured getting creditor with id %v:%v",
 							id, err))
 					return
 				}
@@ -289,7 +291,7 @@ func customersHandler(c controller.Controller) http.Handler {
 					credits, err := c.GetCreditsByCreditor(id)
 					if err != nil {
 						ui.RespondError(res, http.StatusInternalServerError,
-							fmt.Sprintf("An error occured getting credits by creditor with id %v:",
+							fmt.Sprintf("An error occured getting credits by creditor with id %v:%v",
 								id, err))
 						return
 					}

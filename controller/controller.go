@@ -21,7 +21,7 @@ type Controller struct {
 func (c *Controller) Init(dbConfig db.Config, authSecret string) error {
 	db, err := db.InitDb(dbConfig)
 	if err != nil {
-		log.Println("Error InitDb: %v", err)
+		log.Fatalln("Error InitDb:", err)
 		return err
 	}
 
