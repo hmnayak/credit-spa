@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -18,28 +17,9 @@ type PostgresDb struct {
 	dbConn *sqlx.DB
 }
 
-// Config stores the connection string to connect to a db instance
-type Config struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	DBName   string `yaml:"dbname"`
-	SSLMode  string `yaml:"sslmode"`
-}
-
-func (c Config) String() string {
-	if c.Password == "" {
-		return fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=%s",
-			c.Host, c.Port, c.User, c.DBName, c.SSLMode)
-	}
-	return fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
-		c.Host, c.Port, c.User, c.DBName, c.Password, c.SSLMode)
-}
-
 //InitDb creates a table in postgres using the configuration provided
-func InitDb(cfg Config) (*PostgresDb, error) {
-	dbConn, err := sqlx.Connect("postgres", fmt.Sprintf("%v", cfg))
+func InitDb(connStr string) (*PostgresDb, error) {
+	dbConn, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}

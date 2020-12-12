@@ -14,15 +14,15 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/hmnayak/credit/controller"
-	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/ui"
 )
 
 // AppConfig is a container of api configuration data
 type AppConfig struct {
-	DBConfig   db.Config `yaml:"postgresdb"`
-	AuthSecret string    `yaml:"authsecret"`
+	Port       string `yaml:"port"`
+	PGConn     string `yaml:"pg_conn"`
+	AuthSecret string `yaml:"authsecret"`
 }
 
 func main() {
@@ -39,8 +39,8 @@ func main() {
 
 	c := controller.Controller{}
 
-	log.Println("Initializing controller with DB config:", config.DBConfig)
-	c.Init(config.DBConfig, config.AuthSecret)
+	log.Println("Initializing controller with connection:", config.PGConn)
+	c.Init(config.PGConn, config.AuthSecret)
 
 	mux := http.NewServeMux()
 
@@ -49,11 +49,11 @@ func main() {
 	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
 	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
 
-	err = http.ListenAndServe(":8001", mux)
+	log.Println("Starting server on port " + config.Port)
+	err = http.ListenAndServe(":"+config.Port, mux)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
-	log.Println("Listening on port 8001...")
 }
 
 func authenticate(c controller.Controller, h http.Handler) http.Handler {

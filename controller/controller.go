@@ -18,8 +18,8 @@ type Controller struct {
 }
 
 // Init sets up a connection to database with configuration provided
-func (c *Controller) Init(dbConfig db.Config, authSecret string) error {
-	db, err := db.InitDb(dbConfig)
+func (c *Controller) Init(connStr string, authSecret string) error {
+	db, err := db.InitDb(connStr)
 	if err != nil {
 		log.Fatalln("Error InitDb:", err)
 		return err
