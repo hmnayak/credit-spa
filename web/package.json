@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -12,6 +13,6 @@
     "parcel-bundler": "^1.12.4"
   },
   "scripts": {
-    "dev": "parcel watch index.html"
+    "dev": "parcel watch --public-url . index.html"
   }
 }
