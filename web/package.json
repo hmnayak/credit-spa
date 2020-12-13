@@ -1,0 +1,17 @@
+{
+  "name": "credit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mithril": "^2.0.4"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  },
+  "scripts": {
+    "dev": "parcel watch index.html"
+  }
+}

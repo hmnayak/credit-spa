@@ -22,6 +22,7 @@ import (
 type AppConfig struct {
 	Port       string `yaml:"port"`
 	PGConn     string `yaml:"pg_conn"`
+	StaticDir  string `yaml:"static_dir"`
 	AuthSecret string `yaml:"authsecret"`
 }
 
@@ -48,6 +49,10 @@ func main() {
 	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
 	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
 	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
+	if config.StaticDir != "" {
+		fileServer := http.FileServer(http.Dir(config.StaticDir))
+		mux.Handle("/web/", http.StripPrefix("/web", fileServer))
+	}
 
 	log.Println("Starting server on port " + config.Port)
 	err = http.ListenAndServe(":"+config.Port, mux)
