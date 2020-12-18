@@ -1,16 +1,24 @@
 import React from  'react';
-import { App, View, Page, Navbar } from 'framework7-react';
+import { App, View, Navbar } from 'framework7-react';
+import HomePage from './pages/home.jsx';
+import AboutPage from './pages/about.jsx';
+
+const params = {
+  name: 'Credit',
+  theme: 'auto',
+  id: 'treeples.credit',
+  routes: [{
+    path: '/',
+    component: HomePage,
+  },{
+    path: '/about/',
+    component: AboutPage,
+  }],  
+};
 
 export default () => (
-  <App params={{ theme: 'auto', name: 'Credit', id: 'treeples.credit' }}>
-
-    <View main>
-
-      <Page>
-        <Navbar title="Credit"></Navbar>
-        <p>Hello world</p>
-      </Page>
-
-    </View>
+  <App params={params}>
+    <Navbar title="Credit"></Navbar>
+    <View main url="/"/>
   </App>
 );
