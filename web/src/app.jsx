@@ -11,14 +11,16 @@ const params = {
     path: '/',
     component: HomePage,
   },{
-    path: '/about/',
+    path: '/about',
     component: AboutPage,
   }],  
 };
 
+const rootPath = window.location.pathname.replace(/\/+$/, '');
+
 export default () => (
   <App params={params}>
     <Navbar title="Credit"></Navbar>
-    <View main url="/"/>
+    <View main pushState={true} pushStateSeparator="" pushStateRoot={rootPath} />
   </App>
 );
