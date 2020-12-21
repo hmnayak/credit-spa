@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 
 	"github.com/hmnayak/credit/controller"
@@ -43,20 +44,19 @@ func main() {
 	log.Println("Initializing controller with connection:", config.PGConn)
 	c.Init(config.PGConn, config.AuthSecret)
 
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 
-	mux.Handle("/ping/", pingHandler(c))
-	mux.Handle("/login/", loginHandler(c))
-	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
-	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
-	mux.Handle("/defaulters/", authenticate(c, defaultersHandler(c)))
+	r.Handle("/api/ping", pingHandler(c))
+	r.Handle("/api/login", loginHandler(c))
+	r.Handle("/api/routes", authenticate(c, routesHandler(c)))
+	r.Handle("/api/creditors", authenticate(c, customersHandler(c)))
+	r.Handle("/api/defaulters", authenticate(c, defaultersHandler(c)))
 	if config.StaticDir != "" {
-		fileServer := http.FileServer(http.Dir(config.StaticDir))
-		mux.Handle("/web/", http.StripPrefix("/web", fileServer))
+		r.PathPrefix("/").Handler(spaHandler(config.StaticDir))
 	}
 
 	log.Println("Starting server on port " + config.Port)
-	err = http.ListenAndServe(":"+config.Port, mux)
+	err = http.ListenAndServe(":"+config.Port, r)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
@@ -106,6 +106,16 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			}
 		}
 		h.ServeHTTP(res, req)
+	})
+}
+
+func spaHandler(staticDir string) http.Handler {
+	fileServer := http.FileServer(http.Dir(staticDir))
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if !strings.Contains(req.URL.Path, ".") {
+			req.URL.Path = "/"
+		}
+		fileServer.ServeHTTP(w, req)
 	})
 }
 
