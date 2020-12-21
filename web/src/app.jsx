@@ -18,10 +18,10 @@ export default () => (
     <Navbar title="Credit"></Navbar>
     <View
       main
-      url="/"
+      url={rootPath}
       browserHistory
       browserHistorySeparator=""
-      browserHistoryRoot={rootPath}
+      browserHistoryRoot=""
       animate={false}
     />
   </App>

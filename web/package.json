@@ -7,7 +7,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
-    "dev": "parcel watch --public-url . index.html"
+    "dev": "parcel watch index.html"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
