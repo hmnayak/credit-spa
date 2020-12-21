@@ -45,6 +45,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.Handle("/ping/", pingHandler(c))
 	mux.Handle("/login/", loginHandler(c))
 	mux.Handle("/routes/", authenticate(c, routesHandler(c)))
 	mux.Handle("/creditors/", authenticate(c, customersHandler(c)))
@@ -105,6 +106,14 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			}
 		}
 		h.ServeHTTP(res, req)
+	})
+}
+
+func pingHandler(c controller.Controller) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		origin := req.Header.Get("Origin")
+		response := ui.CreateResponse(http.StatusOK, "OK", nil)
+		ui.Respond(res, response, origin)
 	})
 }
 
