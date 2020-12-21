@@ -10,16 +10,17 @@
     "dev": "parcel watch --public-url . index.html"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.10",
+    "@babel/preset-react": "^7.12.10",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
-    "app": "^0.1.0",
-    "framework7": "^5.7.14",
-    "framework7-react": "^5.7.14",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "framework7": "^6.0.0-beta",
+    "framework7-react": "^6.0.0-beta",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   }
 }
