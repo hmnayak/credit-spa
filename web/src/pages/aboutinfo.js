@@ -1,32 +1,39 @@
-import { Button } from "framework7-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-export default class aboutinfo extends React.Component {
-  componentDidMount() {
-    this.loadDoc("/api/ping", this.myFunction);
-  }
+function aboutinfo() {
+  const [error, setError] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [items, setItem] = useState("");
 
-  loadDoc(url, cFunction) {
-    var xhttp;
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        cFunction(this);
-      }
-    };
-    xhttp.open("GET", url, true);
-    xhttp.send();
-  }
+  // Note: the empty deps array [] means
+  // this useEffect will run once
+  // similar to componentDidMount()
+  useEffect(() => {
+    fetch("/api/ping")
+      .then((res) => res.text())
+      .then(
+        (result) => {
+          setIsLoaded(true);
+          console.log(result);
+          setItem(result);
+        },
+        // Note: it's important to handle errors here
+        // instead of a catch() block so that we don't swallow
+        // exceptions from actual bugs in components.
+        (error) => {
+          setIsLoaded(true);
+          setError(error);
+        }
+      );
+  }, []);
 
-  myFunction(xhttp) {
-    document.getElementById("aboutinfo").innerHTML = xhttp.responseText;
-  }
-
-  render() {
-    return (
-      <div>
-        <div id="aboutinfo" />
-      </div>
-    );
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  } else if (!isLoaded) {
+    return <div>Loading...</div>;
+  } else {
+    return <div> {items}</div>;
   }
 }
+
+export default aboutinfo;
