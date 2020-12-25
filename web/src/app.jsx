@@ -1,17 +1,24 @@
-import React from  'react';
-import { App, View, Navbar } from 'framework7-react';
-import HomePage from './pages/home.jsx';
-import AboutPage from './pages/about.jsx';
+import React from "react";
+import { App, View, Navbar } from "framework7-react";
+import HomePage from "./pages/home.jsx";
+import AboutPage from "./pages/about.jsx";
 
-const routes = [{
-  path: '/',
-  component: HomePage,
-}, {
-  path: '/about',
-  component: AboutPage,
-}];
+const routes = [
+  {
+    path: "/",
+    component: HomePage,
+  },
+  {
+    path: "/about",
+    component: AboutPage,
+  },
+];
 
-const rootPath = window.location.pathname.replace(/\/+$/, '');
+export function Loading() {
+  return <div>Loading...</div>;
+}
+
+const rootPath = window.location.pathname.replace(/\/+$/, "");
 
 export default () => (
   <App name="Credit" theme="auto" id="treeples.credit" routes={routes}>

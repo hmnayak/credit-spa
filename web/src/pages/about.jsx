@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Page, Link } from "framework7-react";
 import { aboutinfoApi } from "../api";
+import { Loading } from "../app.jsx";
 
 export default () => {
   return (
@@ -12,7 +13,7 @@ export default () => {
   );
 };
 
-function Infotext() {
+const Infotext = (props) => {
   const [error, setError] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [item, setItem] = useState("");
@@ -44,8 +45,8 @@ function Infotext() {
   if (error) {
     return <div>Error: {error.message}</div>;
   } else if (!isLoaded) {
-    return <div>Loading...</div>;
+    return Loading();
   } else {
     return <div> {item}</div>;
   }
-}
+};
