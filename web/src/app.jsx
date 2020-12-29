@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { App, View, Navbar } from "framework7-react";
-import HomePage from "./pages/home.jsx";
+import LoginPage from "./pages/login.jsx";
 import AboutPage from "./pages/about.jsx";
 
 const rootPath = window.location.pathname.replace(/\/+$/, "");
@@ -17,7 +17,7 @@ export default () => {
   const routes = [
     {
       path: "/",
-      component: HomePage,
+      component: LoginPage,
     },
     {
       path: "/about",
