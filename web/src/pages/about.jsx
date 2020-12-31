@@ -21,7 +21,7 @@ export default (props) => {
     <Page>
       <p>About</p>
       <div> {item}</div>
-      <Link href="/">Home</Link>
+      <Link href=".*">Home</Link>
     </Page>
   );
 };
