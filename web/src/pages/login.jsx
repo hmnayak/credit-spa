@@ -7,10 +7,9 @@ import {
   BlockTitle,
 } from "framework7-react";
 import React from "react";
-import { loginWithEmail, user } from "../services/authsvc";
+import { loginWithEmail } from "../services/authsvc";
 
 export default class login extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -23,7 +22,7 @@ export default class login extends React.Component {
     return (
       <Block strong>
         <form
-          onSubmit={loginWithEmail}
+          onSubmit={this.onLoginWithEmailClicked}
           action=""
           method="GET"
           className="form-ajax-submit"
@@ -48,7 +47,7 @@ export default class login extends React.Component {
               }}
             />
           </List>
-          <Button fill href="/home/" type="submit">
+          <Button fill type="submit">
             Login
           </Button>
         </form>
@@ -68,15 +67,19 @@ export default class login extends React.Component {
   };
 
   render() {
-    if (user) {
-      this.props.router("/home");
-    } else {
-      return (
-        <Page>
-          {this.loginHeader()}
-          {this.showSignup()}
-        </Page>
-      );
-    }
+    // if (user) {
+    //   this.props.router("/home");
+    // } else {
+    return (
+      <Page>
+        {this.loginHeader()}
+        {this.showSignup()}
+      </Page>
+    );
+    // }
   }
+
+  onLoginWithEmailClicked = () => {
+    loginWithEmail(this.state.email, this.state.password);
+  };
 }

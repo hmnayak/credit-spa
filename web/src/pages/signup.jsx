@@ -3,13 +3,11 @@ import React from "react";
 import { signInWithGoogle, signUpWithEmail } from "../services/authsvc";
 
 export default class login extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      emailSignup: "",
-      passwordSignup: "",
-      showSignupForm: true,
+      email: "",
+      password: "",
     };
   }
 
@@ -18,7 +16,7 @@ export default class login extends React.Component {
       <Page>
         <Block>
           <form
-            onSubmit={signUpWithEmail}
+            onSubmit={this.onSignupWithEmailClicked}
             action=""
             method="GET"
             className="form-ajax-submit"
@@ -28,7 +26,7 @@ export default class login extends React.Component {
                 label="Signup with your email"
                 type="email"
                 placeholder="Email address"
-                value={this.state.emailSignup}
+                value={this.state.email}
                 onInput={(e) => {
                   this.setState({ emailSignup: e.target.value });
                 }}
@@ -37,7 +35,7 @@ export default class login extends React.Component {
                 label="Signup your password"
                 type="password"
                 placeholder="Password"
-                value={this.state.passwordSignup}
+                value={this.state.password}
                 onInput={(e) => {
                   this.setState({ passwordSignup: e.target.value });
                 }}
@@ -60,4 +58,8 @@ export default class login extends React.Component {
   render() {
     return <Page>{this.showSignup()}</Page>;
   }
+
+  onSignupWithEmailClicked = () => {
+    signUpWithEmail(this.state.email, this.state.password);
+  };
 }
