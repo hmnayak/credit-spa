@@ -7,9 +7,7 @@ import {
   BlockTitle,
 } from "framework7-react";
 import React from "react";
-// import { firebase } from "@firebase/app";
-// import "firebase/auth";
-import { getFirebase, user } from "../auth";
+import { loginWithEmail, user } from "../auth";
 
 export default class login extends React.Component {
   constructor(props) {
@@ -17,17 +15,14 @@ export default class login extends React.Component {
     this.state = {
       email: "",
       password: "",
-      firebase: getFirebase(),
-      updateUser: props.setUser,
     };
-    console.log(this.state.firebase);
   }
 
   loginHeader = () => {
     return (
       <Block strong>
         <form
-          onSubmit={this.onLoginWithEmailClicked.bind(this)}
+          onSubmit={loginWithEmail}
           action=""
           method="GET"
           className="form-ajax-submit"
@@ -73,7 +68,7 @@ export default class login extends React.Component {
 
   render() {
     if (user) {
-      this.props.history("/home");
+      this.props.router("/home");
     } else {
       return (
         <Page>
@@ -82,36 +77,5 @@ export default class login extends React.Component {
         </Page>
       );
     }
-  }
-
-  onLoginWithEmailClicked = (e) => {
-    e.preventDefault();
-    // const appIns = this.props.f7router.app;
-    // console.log(appIns);
-    let firebase = this.state.firebase;
-    // console.log(firebase);
-    firebase
-      .auth()
-      .signInWithEmailAndPassword(this.state.email, this.state.password)
-      .then((res) => {
-        // console.log(firebase.auth().currentUser);
-        // console.log(this.state.updateUser);
-        this.state.updateUser(firebase.auth().currentUser);
-        // this.state.navigate("/home/");
-      })
-      .catch((error) => {
-        console.error("Failed to login", error);
-        alert(error.message + " Please try again.");
-      });
-    this.setState({ firebase: firebase });
-  };
-
-  onLogoutClicked() {
-    this.state.firebase
-      .auth()
-      .signOut()
-      .catch((error) => {
-        console.error("Error while trying out user", error);
-      });
   }
 }

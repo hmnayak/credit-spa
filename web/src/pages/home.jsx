@@ -13,7 +13,7 @@ export default (props) => {
   return (
     <Page>
       <p>Hello world</p>
-      {userInfo}
+      {/* {userInfo()} */}
       <Link href="/about/">About</Link>
     </Page>
   );
