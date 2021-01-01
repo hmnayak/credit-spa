@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Page, Link } from "framework7-react";
-import { aboutinfoApi } from "../api";
+import { aboutinfoApi } from "../services/api";
 
 export default (props) => {
 

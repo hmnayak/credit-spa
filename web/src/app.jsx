@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { App, View, Navbar, f7 } from "framework7-react";
-import { user, setNavigate } from "./authsvc";
+import { user, setNavigate } from "./services/authsvc";
 import routes from "./routes";
 
 const rootPath = window.location.pathname.replace(/\/+$/, "");
 
 export default class Container extends React.Component {
-  
+
   constructor(props) {
     super(props);
     this.state = {

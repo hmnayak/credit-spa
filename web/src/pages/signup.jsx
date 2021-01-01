@@ -1,6 +1,6 @@
 import { Page, Block, Button, List, ListInput } from "framework7-react";
 import React from "react";
-import { signInWithGoogle, signUpWithEmail } from "../authsvc";
+import { signInWithGoogle, signUpWithEmail } from "../services/authsvc";
 
 export default class login extends React.Component {
 
