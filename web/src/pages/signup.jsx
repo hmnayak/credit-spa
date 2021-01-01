@@ -1,7 +1,7 @@
 import { Page, Block, Button, List, ListInput } from "framework7-react";
 import React from "react";
+import { getFirebase, user } from "../auth";
 import { firebase } from "@firebase/app";
-import "firebase/auth";
 
 export default class login extends React.Component {
   constructor(props) {
@@ -9,32 +9,11 @@ export default class login extends React.Component {
 
     this.state = {
       user: null,
-      email: "",
-      password: "",
       emailSignup: "",
       passwordSignup: "",
+      firebase: getFirebase(),
       showSignupForm: true,
     };
-  }
-
-  componentDidMount() {
-    const config = {
-      apiKey: "AIzaSyCn3VXwkmLvubI5TZytQNH1D8nut8FoQgY",
-      authDomain: "credit-7f47d.firebaseapp.com",
-      projectId: "credit-7f47d",
-      storageBucket: "credit-7f47d.appspot.com",
-      messagingSenderId: "486648757058",
-      appId: "1:486648757058:web:1232aa94de5f9be53926db",
-    };
-
-    let firebaseApp = !firebase.apps.length
-      ? firebase.initializeApp(config)
-      : firebase.app();
-
-    firebase.auth().onAuthStateChanged((user) => {
-      console.log(user);
-      this.setState({ user: user });
-    });
   }
 
   showSignup = () => {
@@ -98,9 +77,10 @@ export default class login extends React.Component {
   }
 
   onSignupClicked = (e) => {
+    let firebas = this.state.firebase;
     console.log("Signup clicked");
     e.preventDefault();
-    firebase
+    firebas
       .auth()
       .createUserWithEmailAndPassword(
         this.state.emailSignup,

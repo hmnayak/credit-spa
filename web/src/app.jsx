@@ -11,7 +11,6 @@ const rootPath = window.location.pathname.replace(/\/+$/, "");
 export default () => {
   const [isLoading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
-  // const [firebase, setFirebase] = useState(null);
 
   const Loading = () => {
     if (isLoading) {
@@ -23,12 +22,13 @@ export default () => {
     {
       path: "/",
       beforeEnter: function (router) {
-        if (getLoggedInUser()) {
-          setUser(getLoggedInUser());
+        getLoggedInUser(setUser);
+        // console.log(user);
+        if (user) {
+          // setUser(getLoggedInUser());
           router.resolve();
           this.navigate("/home");
         } else {
-          // setFirebase(getFirebase());
           router.reject();
           this.navigate("/login");
         }

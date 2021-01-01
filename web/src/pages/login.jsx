@@ -9,7 +9,7 @@ import {
 import React from "react";
 // import { firebase } from "@firebase/app";
 // import "firebase/auth";
-import { getFirebase } from "../auth";
+import { getFirebase, user } from "../auth";
 
 export default class login extends React.Component {
   constructor(props) {
@@ -21,15 +21,6 @@ export default class login extends React.Component {
       updateUser: props.setUser,
     };
     console.log(this.state.firebase);
-  }
-
-  componentDidMount() {
-    // let firebase = this.state.firebase;
-    // firebase.auth().onAuthStateChanged((user) => {
-    //   console.log(user);
-    //   this.state.updateUser(user);
-    // });
-    // this.setState({ updateUser });
   }
 
   loginHeader = () => {
@@ -81,12 +72,16 @@ export default class login extends React.Component {
   };
 
   render() {
-    return (
-      <Page>
-        {this.loginHeader()}
-        {this.showSignup()}
-      </Page>
-    );
+    if (user) {
+      this.props.history("/home");
+    } else {
+      return (
+        <Page>
+          {this.loginHeader()}
+          {this.showSignup()}
+        </Page>
+      );
+    }
   }
 
   onLoginWithEmailClicked = (e) => {

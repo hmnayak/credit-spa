@@ -10,6 +10,8 @@ const config = {
   appId: "1:486648757058:web:1232aa94de5f9be53926db",
 };
 
+export let user = null;
+
 export function getFirebase() {
   let firebaseApp = !firebase.apps.length
     ? firebase.initializeApp(config)
@@ -17,16 +19,14 @@ export function getFirebase() {
   return firebase;
 }
 
-export function getLoggedInUser() {
+export function getLoggedInUser(setUser) {
   let firebaseApp = !firebase.apps.length
     ? firebase.initializeApp(config)
     : firebase.app();
 
-  let curuser = null;
-  firebase.auth().onAuthStateChanged((user) => {
-    console.log(user);
-    curuser = user;
+  firebase.auth().onAuthStateChanged((curuser) => {
+    console.log(curuser);
+    user = curuser;
+    setUser(curuser);
   });
-  console.log(curuser);
-  return curuser;
 }
