@@ -7,9 +7,10 @@ import {
   BlockTitle,
 } from "framework7-react";
 import React from "react";
-import { loginWithEmail, user } from "../auth";
+import { loginWithEmail, user } from "../authsvc";
 
 export default class login extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {

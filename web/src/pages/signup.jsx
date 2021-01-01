@@ -1,11 +1,11 @@
 import { Page, Block, Button, List, ListInput } from "framework7-react";
 import React from "react";
-import { signInWithGoogle, signUpWithEmail } from "../auth";
+import { signInWithGoogle, signUpWithEmail } from "../authsvc";
 
 export default class login extends React.Component {
+
   constructor(props) {
     super(props);
-
     this.state = {
       emailSignup: "",
       passwordSignup: "",
@@ -14,7 +14,6 @@ export default class login extends React.Component {
   }
 
   showSignup = () => {
-    console.log(this.props);
     return (
       <Page>
         <Block>

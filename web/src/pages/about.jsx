@@ -3,7 +3,7 @@ import { Page, Link } from "framework7-react";
 import { aboutinfoApi } from "../api";
 
 export default (props) => {
-  console.log(props);
+
   const [item, setItem] = useState("");
 
   let aboutPromise = aboutinfoApi();
@@ -21,7 +21,7 @@ export default (props) => {
     <Page>
       <p>About</p>
       <div> {item}</div>
-      <Link href=".*">Home</Link>
+      <Link href="/">Home</Link>
     </Page>
   );
 };

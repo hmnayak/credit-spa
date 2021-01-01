@@ -40,14 +40,5 @@ export default (setLoading) => {
         router.resolve();
       },
     },
-    // {
-    //   path: "(.*)",
-    //   component: HomePage,
-    //   options: {
-    //     props: {
-    //       user: user,
-    //     },
-    //   },
-    // },
   ];
 };
