@@ -35,18 +35,25 @@ export const signInWithGoogle = () => {
 };
 
 export const logoutClicked = () => {
+  localStorage.setItem("user", "Guest");
   firebase
     .auth()
     .signOut()
     .catch((error) => {
       console.error("Error while trying out user", error);
     });
+  window.location.reload();
 };
 
-export const signUpWithEmail = (email, password) => {
+export const signUpWithEmail = (email, password, name) => {
   firebase
     .auth()
     .createUserWithEmailAndPassword(email, password)
+    .then((result) => {
+      return result.user.updateProfile({
+        displayName: name,
+      });
+    })
     .catch((error) => {
       console.error("Failed to create User", error);
       alert(error.message + " Please try again", "");
@@ -59,7 +66,9 @@ export const loginWithEmail = (email, password) => {
     .signInWithEmailAndPassword(email, password)
     .then((res) => {
       user = firebase.auth().currentUser;
-      console.log(user);
+      if (typeof Storage !== "undefined") {
+        localStorage.setItem("user", user.displayName);
+      }
       navigate("/");
     })
     .catch((error) => {

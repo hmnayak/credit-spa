@@ -8,6 +8,7 @@ export default class login extends React.Component {
     this.state = {
       email: "",
       password: "",
+      name: "",
     };
   }
 
@@ -22,6 +23,15 @@ export default class login extends React.Component {
             className="form-ajax-submit"
           >
             <List class="login-list">
+              <ListInput
+                label="Name"
+                type="text"
+                placeholder="Name"
+                value={this.state.name}
+                onInput={(e) => {
+                  this.setState({ name: e.target.value });
+                }}
+              />
               <ListInput
                 label="Signup with your email"
                 type="email"
@@ -61,6 +71,6 @@ export default class login extends React.Component {
 
   onSignupWithEmailClicked = (e) => {
     e.preventDefault();
-    signUpWithEmail(this.state.email, this.state.password);
+    signUpWithEmail(this.state.email, this.state.password, this.state.name);
   };
 }
