@@ -34,7 +34,7 @@ export const signInWithGoogle = () => {
   firebase.auth().signInWithRedirect(provider);
 };
 
-export const onLogoutClicked = () => {
+export const logoutClicked = () => {
   firebase
     .auth()
     .signOut()
@@ -59,6 +59,8 @@ export const loginWithEmail = (email, password) => {
     .signInWithEmailAndPassword(email, password)
     .then((res) => {
       user = firebase.auth().currentUser;
+      console.log(user);
+      navigate("/");
     })
     .catch((error) => {
       console.error("Failed to login", error);

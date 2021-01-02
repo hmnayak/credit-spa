@@ -16,7 +16,7 @@ export default class login extends React.Component {
       <Page>
         <Block>
           <form
-            onSubmit={this.onSignupWithEmailClicked}
+            onSubmit={this.onSignupWithEmailClicked.bind(this)}
             action=""
             method="GET"
             className="form-ajax-submit"
@@ -28,7 +28,7 @@ export default class login extends React.Component {
                 placeholder="Email address"
                 value={this.state.email}
                 onInput={(e) => {
-                  this.setState({ emailSignup: e.target.value });
+                  this.setState({ email: e.target.value });
                 }}
               />
               <ListInput
@@ -37,7 +37,7 @@ export default class login extends React.Component {
                 placeholder="Password"
                 value={this.state.password}
                 onInput={(e) => {
-                  this.setState({ passwordSignup: e.target.value });
+                  this.setState({ password: e.target.value });
                 }}
               />
             </List>
@@ -59,7 +59,8 @@ export default class login extends React.Component {
     return <Page>{this.showSignup()}</Page>;
   }
 
-  onSignupWithEmailClicked = () => {
+  onSignupWithEmailClicked = (e) => {
+    e.preventDefault();
     signUpWithEmail(this.state.email, this.state.password);
   };
 }

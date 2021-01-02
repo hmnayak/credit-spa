@@ -79,7 +79,8 @@ export default class login extends React.Component {
     // }
   }
 
-  onLoginWithEmailClicked = () => {
+  onLoginWithEmailClicked = (e) => {
+    e.preventDefault();
     loginWithEmail(this.state.email, this.state.password);
   };
 }
