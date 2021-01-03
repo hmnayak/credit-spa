@@ -67,16 +67,12 @@ export default class login extends React.Component {
   };
 
   render() {
-    // if (user) {
-    //   this.props.router("/home");
-    // } else {
     return (
       <Page>
         {this.loginHeader()}
         {this.showSignup()}
       </Page>
     );
-    // }
   }
 
   onLoginWithEmailClicked = (e) => {

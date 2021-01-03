@@ -17,7 +17,7 @@ export default class login extends React.Component {
       <Page>
         <Block>
           <form
-            onSubmit={this.onSignupWithEmailClicked.bind(this)}
+            onSubmit={this.onSignupWithEmailClicked}
             action=""
             method="GET"
             className="form-ajax-submit"
