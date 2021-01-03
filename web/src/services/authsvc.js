@@ -12,7 +12,12 @@ const config = {
 
 let navigate = null;
 
-export let user = null;
+let user = null;
+
+export let getCurUser = () => {
+  console.log(localStorage.getItem("user"));
+  return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
+};
 
 export const setNavigate = (fn) => {
   navigate = fn;
@@ -69,7 +74,6 @@ export const loginWithEmail = (email, password) => {
       if (typeof Storage !== "undefined") {
         localStorage.setItem("user", user.displayName);
       }
-      navigate("/");
     })
     .catch((error) => {
       console.error("Failed to login", error);

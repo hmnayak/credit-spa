@@ -1,18 +1,12 @@
 import React from "react";
 import { Page, Link, Block, Button } from "framework7-react";
-import { logoutClicked } from "../services/authsvc";
+import { logoutClicked, getCurUser } from "../services/authsvc";
 
 export default (props) => {
   const userInfo = () => {
-    let user = null;
-    if (localStorage.getItem("user")) {
-      user = localStorage.getItem("user");
-    } else {
-      user = "Guest";
-    }
     return (
       <Block strong>
-        You are logged in as {user}
+        You are logged in as {getCurUser()}
         <Button onClick={logoutClicked}>Logout</Button>
       </Block>
     );
