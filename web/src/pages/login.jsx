@@ -27,7 +27,7 @@ export default class login extends React.Component {
           method="GET"
           className="form-ajax-submit"
         >
-          <List class="login-list">
+          <List>
             <ListInput
               label="Login with your email"
               type="email"
@@ -36,7 +36,8 @@ export default class login extends React.Component {
               onInput={(e) => {
                 this.setState({ email: e.target.value });
               }}
-            />
+              required
+            ></ListInput>
             <ListInput
               label="Provide your password"
               type="password"
@@ -75,8 +76,13 @@ export default class login extends React.Component {
     );
   }
 
+  showError = (error) => {
+    console.error("Failed to login", error);
+    alert(error.message + " Please try again.");
+  };
+
   onLoginWithEmailClicked = (e) => {
     e.preventDefault();
-    loginWithEmail(this.state.email, this.state.password);
+    loginWithEmail(this.state.email, this.state.password, this.showError);
   };
 }

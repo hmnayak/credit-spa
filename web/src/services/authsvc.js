@@ -15,7 +15,6 @@ let navigate = null;
 let user = null;
 
 export let getCurUser = () => {
-  console.log(localStorage.getItem("user"));
   return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
 };
 
@@ -50,7 +49,7 @@ export const logoutClicked = () => {
   window.location.reload();
 };
 
-export const signUpWithEmail = (email, password, name) => {
+export const signUpWithEmail = (email, password, name, showError) => {
   firebase
     .auth()
     .createUserWithEmailAndPassword(email, password)
@@ -60,12 +59,11 @@ export const signUpWithEmail = (email, password, name) => {
       });
     })
     .catch((error) => {
-      console.error("Failed to create User", error);
-      alert(error.message + " Please try again", "");
+      showError(error);
     });
 };
 
-export const loginWithEmail = (email, password) => {
+export const loginWithEmail = (email, password, showError) => {
   firebase
     .auth()
     .signInWithEmailAndPassword(email, password)
@@ -76,7 +74,6 @@ export const loginWithEmail = (email, password) => {
       }
     })
     .catch((error) => {
-      console.error("Failed to login", error);
-      alert(error.message + " Please try again.");
+      showError(error);
     });
 };

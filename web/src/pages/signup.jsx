@@ -69,8 +69,18 @@ export default class login extends React.Component {
     return <Page>{this.showSignup()}</Page>;
   }
 
+  showError = (error) => {
+    console.error("Failed to create User", error);
+    alert(error.message + " Please try again", "");
+  };
+
   onSignupWithEmailClicked = (e) => {
     e.preventDefault();
-    signUpWithEmail(this.state.email, this.state.password, this.state.name);
+    signUpWithEmail(
+      this.state.email,
+      this.state.password,
+      this.state.name,
+      this.showError
+    );
   };
 }
