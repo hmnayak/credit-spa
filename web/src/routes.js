@@ -2,6 +2,7 @@ import LoginPage from "./pages/login.jsx";
 import AboutPage from "./pages/about.jsx";
 import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
+import { getCurUser } from "./services/authsvc";
 
 export default (setLoading) => {
   return [
@@ -9,14 +10,13 @@ export default (setLoading) => {
       path: "/",
       component: HomePage,
       beforeEnter: function (router) {
-        router.resolve();
-        // if (user) {
-        //   router.resolve();
-        //   this.navigate("/home");
-        // } else {
-        //   router.reject();
-        //   this.navigate("/login");
-        // }
+        if (getCurUser() !== "Guest") {
+          router.resolve();
+          this.navigate("/home");
+        } else {
+          router.reject();
+          this.navigate("/login");
+        }
       },
     },
     {
