@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import { App, View, Navbar, f7 } from "framework7-react";
-import { setNavigate } from "./services/authsvc";
+import React from "react";
+import { App, View, Navbar } from "framework7-react";
 import routes from "./routes";
 
 const rootPath = window.location.pathname.replace(/\/+$/, "");
@@ -11,10 +10,6 @@ export default class Container extends React.Component {
     this.state = {
       isLoading: false,
     };
-  }
-
-  componentDidMount() {
-    setNavigate(f7.views.main.router.navigate.bind(f7.views.main.router));
   }
 
   setLoading(isLoading) {

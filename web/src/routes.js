@@ -5,18 +5,32 @@ import SignupPage from "./pages/signup.jsx";
 import { getCurUser } from "./services/authsvc";
 
 export default (setLoading) => {
+
+  const authRedirect = (routeContext) => {
+    if (getCurUser() !== "Guest") {
+      routeContext.resolve();
+    } else {
+      routeContext.reject();
+      routeContext.router.navigate('/login');
+    }
+  }
+
+  const loadingFilter = (routeContext) => {
+    setLoading(true);
+    routeContext.resolve();
+  }
+
+  const routeOpts = {
+    props: {
+      loadComplete: setLoading,
+    },
+  }
+
   return [
     {
       path: "/",
-      async: function (router) {
-        if (getCurUser() !== "Guest") {
-          router.resolve({ component: HomePage });
-        } else {
-          // router.reject();
-          // this.navigate("/login");
-          router.resolve({ component: LoginPage });
-        }
-      },
+      component: HomePage,
+      beforeEnter: [],
     },
     {
       path: "/home",
@@ -25,23 +39,18 @@ export default (setLoading) => {
     {
       path: "/login",
       component: LoginPage,
+      beforeEnter: [],
     },
     {
       path: "/signup",
       component: SignupPage,
+      beforeEnter: [],
     },
     {
       path: "/about",
       component: AboutPage,
-      options: {
-        props: {
-          loadComplete: setLoading,
-        },
-      },
-      beforeEnter: function (router) {
-        setLoading(true);
-        router.resolve();
-      },
+      options: routeOpts,
+      beforeEnter: [authRedirect, loadingFilter],
     },
   ];
 };

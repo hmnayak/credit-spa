@@ -10,16 +10,10 @@ const config = {
   appId: "1:486648757058:web:1232aa94de5f9be53926db",
 };
 
-let navigate = null;
-
 let user = null;
 
 export let getCurUser = () => {
   return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
-};
-
-export const setNavigate = (fn) => {
-  navigate = fn;
 };
 
 if (firebase.apps.length == 0) {
@@ -28,9 +22,6 @@ if (firebase.apps.length == 0) {
 
 firebase.auth().onAuthStateChanged((curuser) => {
   user = curuser;
-  if (navigate) {
-    navigate("/");
-  }
 });
 
 export const signInWithGoogle = () => {
