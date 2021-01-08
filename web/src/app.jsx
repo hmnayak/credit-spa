@@ -38,6 +38,7 @@ export default class Container extends React.Component {
           browserHistorySeparator=""
           browserHistoryRoot=""
           animate={false}
+          browserHistoryInitialMatch={false}
         />
       </App>
     );
