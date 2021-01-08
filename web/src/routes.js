@@ -8,14 +8,19 @@ export default (setLoading) => {
   return [
     {
       path: "/",
-      beforeEnter: function (router) {
+      async: function (router) {
         if (getCurUser() !== "Guest") {
           router.resolve({ component: HomePage });
         } else {
-          router.reject();
-          this.navigate("/login");
+          // router.reject();
+          // this.navigate("/login");
+          router.resolve({ component: LoginPage });
         }
       },
+    },
+    {
+      path: "/home",
+      component: HomePage,
     },
     {
       path: "/login",
@@ -38,9 +43,5 @@ export default (setLoading) => {
         router.resolve();
       },
     },
-    // {
-    //   path: "./home",
-    //   component: HomePage,
-    // },
   ];
 };
