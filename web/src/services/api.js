@@ -20,5 +20,5 @@ export function updateUsrToken() {
       "Authorization" :  getUserToken()
     },
   };
-  return fetch("/api/", params);
+  return fetch("/api/usrloggedin", params);
 }
