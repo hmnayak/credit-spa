@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	firebase "firebase.google.com/go"
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/hmnayak/credit/db"
@@ -15,10 +16,11 @@ import (
 type Controller struct {
 	model      *model.Model
 	authSecret string
+	fbApp      *firebase.App
 }
 
 // Init sets up a connection to database with configuration provided
-func (c *Controller) Init(connStr string, authSecret string) error {
+func (c *Controller) Init(connStr string, authSecret string, fbApp *firebase.App) error {
 	db, err := db.InitDb(connStr)
 	if err != nil {
 		log.Fatalln("Error InitDb:", err)
@@ -27,6 +29,7 @@ func (c *Controller) Init(connStr string, authSecret string) error {
 
 	c.model = model.New(db)
 	c.authSecret = authSecret
+	c.fbApp = fbApp
 
 	return nil
 }

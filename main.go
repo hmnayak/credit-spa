@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	firebase "firebase.google.com/go"
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v2"
 
@@ -28,6 +30,11 @@ type AppConfig struct {
 }
 
 func main() {
+	fbApp, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+
 	configFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatalln("Error reading configuration file:", err)
@@ -42,7 +49,7 @@ func main() {
 	c := controller.Controller{}
 
 	log.Println("Initializing controller with connection:", config.PGConn)
-	c.Init(config.PGConn, config.AuthSecret)
+	c.Init(config.PGConn, config.AuthSecret, fbApp)
 
 	r := mux.NewRouter()
 
