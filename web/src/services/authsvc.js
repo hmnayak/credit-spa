@@ -12,9 +12,15 @@ const config = {
 
 let user = null;
 
+let userToken = null;
+
 export let getCurUser = () => {
   return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
 };
+
+export let getUserToken = () => {
+  return !localStorage.getItem("userToken") ? "Guest" : localStorage.getItem("userToken");
+}
 
 if (firebase.apps.length == 0) {
   firebase.initializeApp(config);
@@ -41,7 +47,7 @@ export const logoutClicked = () => {
 };
 
 export const signUpWithEmail = (email, password, name, showError) => {
-  firebase
+  return firebase
     .auth()
     .createUserWithEmailAndPassword(email, password)
     .then((result) => {
@@ -55,13 +61,18 @@ export const signUpWithEmail = (email, password, name, showError) => {
 };
 
 export const loginWithEmail = (email, password, showError) => {
-  firebase
+  return firebase
     .auth()
     .signInWithEmailAndPassword(email, password)
     .then((res) => {
       user = firebase.auth().currentUser;
+      userToken = firebase.auth().currentUser.getIdToken(true);
+      console.log(userToken);
       if (typeof Storage !== "undefined") {
         localStorage.setItem("user", user.displayName);
+      }
+      if (typeof Storage !== "undefined") {
+        localStorage.setItem("userToken", userToken);
       }
     })
     .catch((error) => {

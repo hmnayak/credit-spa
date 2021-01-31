@@ -81,6 +81,8 @@ export default class signup extends React.Component {
       this.state.password,
       this.state.name,
       this.showError
-    );
+    ).then(() => {
+      this.props.f7router.navigate("/");
+    });
   };
 }

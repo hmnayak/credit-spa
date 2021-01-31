@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Page, Link } from "framework7-react";
-import { aboutinfoApi } from "../services/api";
+import { aboutInfoApi } from "../services/api";
 
 export default (props) => {
 
   const [item, setItem] = useState("");
 
-  let aboutPromise = aboutinfoApi();
+  let aboutPromise = aboutInfoApi();
 
   useEffect(() => {
     aboutPromise
