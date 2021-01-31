@@ -14,6 +14,7 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/gorilla/mux"
+	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
 
 	"github.com/hmnayak/credit/controller"
@@ -23,17 +24,14 @@ import (
 
 // AppConfig is a container of api configuration data
 type AppConfig struct {
-	Port       string `yaml:"port"`
-	PGConn     string `yaml:"pg_conn"`
-	StaticDir  string `yaml:"static_dir"`
-	AuthSecret string `yaml:"authsecret"`
+	Port          string `yaml:"port"`
+	PGConn        string `yaml:"pg_conn"`
+	StaticDir     string `yaml:"static_dir"`
+	AuthSecret    string `yaml:"authsecret"`
+	FBServiceFile string `yaml:"service_file_location"`
 }
 
 func main() {
-	fbApp, err := firebase.NewApp(context.Background(), nil)
-	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
-	}
 
 	configFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
@@ -46,10 +44,21 @@ func main() {
 		log.Fatalln("Error parsing configuration data:", err)
 	}
 
+	opt := option.WithCredentialsFile(config.FBServiceFile)
+	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+
+	client, err := fbApp.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("error getting Auth client: %v\n", err)
+	}
+
 	c := controller.Controller{}
 
 	log.Println("Initializing controller with connection:", config.PGConn)
-	c.Init(config.PGConn, config.AuthSecret, fbApp)
+	c.Init(config.PGConn, config.AuthSecret, client)
 
 	r := mux.NewRouter()
 
@@ -78,40 +87,45 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 			ui.RespondWithOptions(res, response, origin)
 			return
 		}
-		t, err := req.Cookie("token")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				response = ui.CreateResponse(http.StatusUnauthorized,
-					"No authentication token present in request cookies", nil)
-				ui.Respond(res, response, origin)
-				return
-			}
-			response = ui.CreateResponse(http.StatusBadRequest,
-				"An authentication token needs to be present in request cookies", nil)
-			ui.Respond(res, response, origin)
-			return
-		}
-		auth, err := c.ValidateUser(t.Value)
-		if err != nil {
-			response = ui.CreateResponse(http.StatusUnauthorized,
-				"Invalid authentication token", nil)
-			ui.Respond(res, response, origin)
-			return
-		}
-		if auth == "c" {
-			// extract path parameters
-			cleanPath := path.Clean(req.URL.Path)
-			pathParams := strings.Split(cleanPath[1:], "/")
-			if len(pathParams) >= 3 && pathParams[2] == "payments" {
-				switch req.Method {
-				case "OPTIONS", "PUT", "POST", "DELETE", "PATCH":
-					response = ui.CreateResponse(http.StatusUnauthorized,
-						"Credentials not authorized to perform the operation", nil)
-					ui.Respond(res, response, origin)
-					return
-				}
-			}
-		}
+
+		authHeader := req.Header.Get("Authorization")
+		println(authHeader)
+		t := strings.Replace(authHeader, "Bearer ", "", 1)
+		c.VerifyUser(t)
+		// t, err := req.Cookie("token")
+		// if err != nil {
+		// 	if err == http.ErrNoCookie {
+		// 		response = ui.CreateResponse(http.StatusUnauthorized,
+		// 			"No authentication token present in request cookies", nil)
+		// 		ui.Respond(res, response, origin)
+		// 		return
+		// 	}
+		// 	response = ui.CreateResponse(http.StatusBadRequest,
+		// 		"An authentication token needs to be present in request cookies", nil)
+		// 	ui.Respond(res, response, origin)
+		// 	return
+		// }
+		// auth, err := c.ValidateUser(t.Value)
+		// if err != nil {
+		// 	response = ui.CreateResponse(http.StatusUnauthorized,
+		// 		"Invalid authentication token", nil)
+		// 	ui.Respond(res, response, origin)
+		// 	return
+		// }
+		// if auth == "c" {
+		// 	// extract path parameters
+		// 	cleanPath := path.Clean(req.URL.Path)
+		// 	pathParams := strings.Split(cleanPath[1:], "/")
+		// 	if len(pathParams) >= 3 && pathParams[2] == "payments" {
+		// 		switch req.Method {
+		// 		case "OPTIONS", "PUT", "POST", "DELETE", "PATCH":
+		// 			response = ui.CreateResponse(http.StatusUnauthorized,
+		// 				"Credentials not authorized to perform the operation", nil)
+		// 			ui.Respond(res, response, origin)
+		// 			return
+		// 		}
+		// 	}
+		// }
 		h.ServeHTTP(res, req)
 	})
 }

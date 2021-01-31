@@ -2,3 +2,4 @@ port: 8001
 pg_conn: "postgres:///credit?host=/var/run/postgresql&sslmode=disable"
 static_dir: "./web/dist"
 authsecret: "<secret>"
+service_file_location: "<firebase service file location>"
