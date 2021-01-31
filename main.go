@@ -332,7 +332,7 @@ func customersHandler(c controller.Controller) http.Handler {
 					payments, err := c.GetPaymentsByCreditor(id)
 					if err != nil {
 						ui.RespondError(res, http.StatusInternalServerError,
-							fmt.Sprintf("An error occured getting payments by creditor with id %v:",
+							fmt.Sprintf("An error occured getting payments by creditor with id %v:%v",
 								id, err))
 						return
 					}
