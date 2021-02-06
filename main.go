@@ -62,7 +62,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.PathPrefix("/*").Handler(authHandler(c))
+	r.PathPrefix("/api/").Handler(authHandler(c))
 
 	// r.Use(loggingMiddleware)
 
@@ -118,6 +118,7 @@ func authHandler(c controller.Controller) http.Handler {
 func spaHandler(staticDir string) http.Handler {
 	fileServer := http.FileServer(http.Dir(staticDir))
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		log.Printf(req.URL.Path)
 		if !strings.Contains(req.URL.Path, ".") {
 			req.URL.Path = "/"
 		}
