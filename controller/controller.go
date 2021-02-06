@@ -85,13 +85,14 @@ func (c *Controller) Logout(token string) error {
 }
 
 // VerifyUser determines if authentication token is valid
-func (c *Controller) VerifyUser(idToken string) {
+func (c *Controller) VerifyUser(idToken string) error {
 	token, err := c.authClient.VerifyIDToken(context.Background(), idToken)
 	if err != nil {
-		log.Fatalf("error verifying ID token: %v\n", err)
+		log.Printf("error verifying ID token: %v\n", err)
+	} else {
+		log.Printf("Verified ID token for user User: %v", token.UID)
 	}
-
-	log.Printf("Verified ID token for user User: %v", token.UID)
+	return err
 }
 
 // ValidateUser confirms the validity of authentication tokens

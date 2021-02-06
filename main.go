@@ -144,10 +144,18 @@ func spaHandler(staticDir string) http.Handler {
 func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		origin := req.Header.Get("Origin")
+		log.Printf(origin)
 		userName := req.Header.Get("Authorization")
 		t := strings.Replace(userName, "Bearer ", "", 1)
-		c.VerifyUser(t)
-		response := ui.CreateResponse(http.StatusOK, "OK", nil)
+		err := c.VerifyUser(t)
+		log.Printf("Error if side")
+		var response ui.Response
+		if err != nil {
+			response = ui.CreateResponse(http.StatusUnauthorized, "Auth not Unauthorised", nil)
+			log.Printf("Error if side")
+		} else {
+			response = ui.CreateResponse(http.StatusOK, "OK", nil)
+		}
 		ui.Respond(res, response, origin)
 	})
 }
