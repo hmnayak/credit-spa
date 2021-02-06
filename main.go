@@ -62,11 +62,15 @@ func main() {
 
 	r := mux.NewRouter()
 
+	r.PathPrefix("/*").Handler(authHandler(c))
+
+	// r.Use(loggingMiddleware)
+
 	r.Handle("/api/ping", pingHandler(c))
 	r.Handle("/api/login", loginHandler(c))
-	r.Handle("/api/routes", authenticate(c, routesHandler(c)))
-	r.Handle("/api/creditors", authenticate(c, customersHandler(c)))
-	r.Handle("/api/defaulters", authenticate(c, defaultersHandler(c)))
+	r.Handle("/api/routes", routesHandler(c))
+	r.Handle("/api/creditors", customersHandler(c))
+	r.Handle("/api/defaulters", defaultersHandler(c))
 	if config.StaticDir != "" {
 		r.PathPrefix("/").Handler(spaHandler(config.StaticDir))
 	}
@@ -78,7 +82,16 @@ func main() {
 	}
 }
 
-func authenticate(c controller.Controller, h http.Handler) http.Handler {
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
+}
+
+func authHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
 		origin := req.Header.Get("Origin")
@@ -89,45 +102,16 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 		}
 
 		authHeader := req.Header.Get("Authorization")
-		println(authHeader)
 		t := strings.Replace(authHeader, "Bearer ", "", 1)
-		c.VerifyUser(t)
 
-		// t, err := req.Cookie("token")
-		// if err != nil {
-		// 	if err == http.ErrNoCookie {
-		// 		response = ui.CreateResponse(http.StatusUnauthorized,
-		// 			"No authentication token present in request cookies", nil)
-		// 		ui.Respond(res, response, origin)
-		// 		return
-		// 	}
-		// 	response = ui.CreateResponse(http.StatusBadRequest,
-		// 		"An authentication token needs to be present in request cookies", nil)
-		// 	ui.Respond(res, response, origin)
-		// 	return
-		// }
-		// auth, err := c.ValidateUser(t.Value)
-		// if err != nil {
-		// 	response = ui.CreateResponse(http.StatusUnauthorized,
-		// 		"Invalid authentication token", nil)
-		// 	ui.Respond(res, response, origin)
-		// 	return
-		// }
-		// if auth == "c" {
-		// 	// extract path parameters
-		// 	cleanPath := path.Clean(req.URL.Path)
-		// 	pathParams := strings.Split(cleanPath[1:], "/")
-		// 	if len(pathParams) >= 3 && pathParams[2] == "payments" {
-		// 		switch req.Method {
-		// 		case "OPTIONS", "PUT", "POST", "DELETE", "PATCH":
-		// 			response = ui.CreateResponse(http.StatusUnauthorized,
-		// 				"Credentials not authorized to perform the operation", nil)
-		// 			ui.Respond(res, response, origin)
-		// 			return
-		// 		}
-		// 	}
-		// }
-		h.ServeHTTP(res, req)
+		err := c.VerifyUser(t)
+
+		if err != nil {
+			response = ui.CreateResponse(http.StatusUnauthorized, "Auth not authorised", nil)
+		} else {
+			response = ui.CreateResponse(http.StatusOK, "OK", nil)
+		}
+		ui.Respond(res, response, origin)
 	})
 }
 
@@ -144,18 +128,8 @@ func spaHandler(staticDir string) http.Handler {
 func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		origin := req.Header.Get("Origin")
-		log.Printf(origin)
-		userName := req.Header.Get("Authorization")
-		t := strings.Replace(userName, "Bearer ", "", 1)
-		err := c.VerifyUser(t)
-		log.Printf("Error if side")
 		var response ui.Response
-		if err != nil {
-			response = ui.CreateResponse(http.StatusUnauthorized, "Auth not Unauthorised", nil)
-			log.Printf("Error if side")
-		} else {
-			response = ui.CreateResponse(http.StatusOK, "OK", nil)
-		}
+		response = ui.CreateResponse(http.StatusOK, "OK", nil)
 		ui.Respond(res, response, origin)
 	})
 }
