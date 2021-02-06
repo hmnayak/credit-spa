@@ -92,6 +92,7 @@ func authenticate(c controller.Controller, h http.Handler) http.Handler {
 		println(authHeader)
 		t := strings.Replace(authHeader, "Bearer ", "", 1)
 		c.VerifyUser(t)
+
 		// t, err := req.Cookie("token")
 		// if err != nil {
 		// 	if err == http.ErrNoCookie {
@@ -143,6 +144,9 @@ func spaHandler(staticDir string) http.Handler {
 func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		origin := req.Header.Get("Origin")
+		userName := req.Header.Get("Authorization")
+		t := strings.Replace(userName, "Bearer ", "", 1)
+		c.VerifyUser(t)
 		response := ui.CreateResponse(http.StatusOK, "OK", nil)
 		ui.Respond(res, response, origin)
 	})

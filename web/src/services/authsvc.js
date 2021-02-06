@@ -66,13 +66,14 @@ export const loginWithEmail = (email, password, showError) => {
     .signInWithEmailAndPassword(email, password)
     .then((res) => {
       user = firebase.auth().currentUser;
-      userToken = firebase.auth().currentUser.getIdToken(true);
-      console.log(userToken);
+      firebase.auth().currentUser.getIdToken(true).then( (idToken) => {
+        userToken = idToken;
+        if (typeof Storage !== "undefined") {
+          localStorage.setItem("userToken", idToken);
+        }
+      });
       if (typeof Storage !== "undefined") {
         localStorage.setItem("user", user.displayName);
-      }
-      if (typeof Storage !== "undefined") {
-        localStorage.setItem("userToken", userToken);
       }
     })
     .catch((error) => {
