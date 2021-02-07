@@ -19,6 +19,7 @@ import (
 
 	"github.com/hmnayak/credit/controller"
 	"github.com/hmnayak/credit/model"
+	"github.com/hmnayak/credit/rest"
 	"github.com/hmnayak/credit/ui"
 )
 
@@ -50,7 +51,7 @@ func main() {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
 
-	client, err := fbApp.Auth(context.Background())
+	authClient, err := fbApp.Auth(context.Background())
 	if err != nil {
 		log.Fatalf("error getting Auth client: %v\n", err)
 	}
@@ -58,19 +59,20 @@ func main() {
 	c := controller.Controller{}
 
 	log.Println("Initializing controller with connection:", config.PGConn)
-	c.Init(config.PGConn, config.AuthSecret, client)
+	c.Init(config.PGConn, config.AuthSecret, authClient)
 
 	r := mux.NewRouter()
 
-	r.PathPrefix("/api/").Handler(authHandler(c))
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(loggingMiddleware)
+	api.Use(rest.AuthMiddleware(authClient))
 
-	// r.Use(loggingMiddleware)
+	api.Handle("/ping", pingHandler(c))
+	api.Handle("/login", loginHandler(c))
+	api.Handle("/routes", routesHandler(c))
+	api.Handle("/creditors", customersHandler(c))
+	api.Handle("/defaulters", defaultersHandler(c))
 
-	r.Handle("/api/ping", pingHandler(c))
-	r.Handle("/api/login", loginHandler(c))
-	r.Handle("/api/routes", routesHandler(c))
-	r.Handle("/api/creditors", customersHandler(c))
-	r.Handle("/api/defaulters", defaultersHandler(c))
 	if config.StaticDir != "" {
 		r.PathPrefix("/").Handler(spaHandler(config.StaticDir))
 	}
@@ -84,34 +86,8 @@ func main() {
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Do stuff here
 		log.Println(r.RequestURI)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
-	})
-}
-
-func authHandler(c controller.Controller) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		var response ui.Response
-		origin := req.Header.Get("Origin")
-		if req.Method == "OPTIONS" {
-			response = ui.CreateResponse(http.StatusOK, "", nil)
-			ui.RespondWithOptions(res, response, origin)
-			return
-		}
-
-		authHeader := req.Header.Get("Authorization")
-		t := strings.Replace(authHeader, "Bearer ", "", 1)
-
-		err := c.VerifyUser(t)
-
-		if err != nil {
-			response = ui.CreateResponse(http.StatusUnauthorized, "Auth not authorised", nil)
-		} else {
-			response = ui.CreateResponse(http.StatusOK, "OK", nil)
-		}
-		ui.Respond(res, response, origin)
 	})
 }
 
