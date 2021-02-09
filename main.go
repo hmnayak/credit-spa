@@ -94,7 +94,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func spaHandler(staticDir string) http.Handler {
 	fileServer := http.FileServer(http.Dir(staticDir))
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		log.Printf(req.URL.Path)
 		if !strings.Contains(req.URL.Path, ".") {
 			req.URL.Path = "/"
 		}

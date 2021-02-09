@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"firebase.google.com/go/auth"
+	"github.com/hmnayak/credit/ui"
 )
 
 func AuthMiddleware(authClient *auth.Client) func(http.Handler) http.Handler {
@@ -15,7 +16,10 @@ func AuthMiddleware(authClient *auth.Client) func(http.Handler) http.Handler {
 			token := strings.Replace(authHeader, "Bearer ", "", 1)
 			_, err := authClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				origin := req.Header.Get("Origin")
+				var response ui.Response
+				response = ui.CreateResponse(http.StatusUnauthorized, "Auth Not Ok", nil)
+				ui.Respond(w, response, origin)
 				return
 			} else {
 				next.ServeHTTP(w, req)
