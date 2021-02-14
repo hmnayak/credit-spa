@@ -4,18 +4,13 @@ import { logoutClicked, getCurUser } from "../services/authsvc";
 
 export default (props) => {
   const userInfo = () => {
-    return (
-      <Block strong>
-        You are logged in as {getCurUser()}
-      </Block>
-    );
+    return <Block strong>You are logged in as {getCurUser()}</Block>;
   };
 
   return (
     <Page>
       <Block strong>
         <p>Life's made simple!</p>
-        <Link href="/about/">About</Link>
       </Block>
       {userInfo()}
     </Page>

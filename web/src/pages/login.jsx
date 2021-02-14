@@ -8,6 +8,7 @@ import {
 } from "framework7-react";
 import React from "react";
 import { loginWithEmail } from "../services/authsvc";
+import "../../css/auth.css";
 
 export default class login extends React.Component {
   constructor(props) {
@@ -22,8 +23,12 @@ export default class login extends React.Component {
   render() {
     return (
       <div class="page no-toolbar no-swipeback login-screen-page">
-        <div class="page-content login-screen-content">
-          <div class="login-screen-title">Credit</div>
+        <div class="page-content login-screen-content auth-position">
+          <div class="login-screen-title">
+            <a href="/" class="link">
+              Credit
+            </a>
+          </div>
           <Block strong>
             <form
               onSubmit={this.onLoginWithEmailClicked}

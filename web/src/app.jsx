@@ -33,6 +33,9 @@ export default class Container extends React.Component {
     if (getCurUser() === "Guest") {
       return (
         <div class="right">
+          <a href="/about/" class="link navlink">
+            About
+          </a>
           <a href="/login/" class="link navlink">
             Login
           </a>
@@ -44,6 +47,9 @@ export default class Container extends React.Component {
     } else {
       return (
         <div class="right">
+          <a href="/about/" class="link navlink">
+            About
+          </a>
           <a href="/" class="link navlink" onClick={logoutClicked}>
             Logout
           </a>
