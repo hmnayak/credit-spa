@@ -1,6 +1,7 @@
 import React from "react";
-import { App, View, Navbar } from "framework7-react";
+import { App, View, Navbar, Link } from "framework7-react";
 import routes from "./routes";
+import { logoutClicked, getCurUser } from "./services/authsvc";
 
 const rootPath = window.location.pathname.replace(/\/+$/, "");
 
@@ -18,10 +19,36 @@ export default class Container extends React.Component {
 
   loading() {
     if (this.state.isLoading) {
-      return <div>Loading...</div>;
+      return <div class="center">Loading...</div>;
     }
   }
-
+  
+  credentialsContent(){
+    if(getCurUser() === "Guest"){
+      return (
+        <div class="right">
+            <a href="/login/" class="link">Login</a>
+            <a href="/signup/" class="link">Signup</a>
+        </div>
+      );
+    }else {
+      return(
+        <div class="right">
+          <a href="/" class="link" onClick={logoutClicked}>Logout</a>
+      </div>
+      )
+    }
+  }
+  
+  headerContent() {
+      return (
+        <div class="navbar-inner">
+          <div class="title">Credit</div>
+          {this.loading()}
+          {this.credentialsContent()}
+      </div>);
+  }
+  
   render() {
     return (
       <App
@@ -30,7 +57,7 @@ export default class Container extends React.Component {
         id="treeples.credit"
         routes={routes(this.setLoading.bind(this))}
       >
-        <Navbar title="Credit">{this.loading()}</Navbar>
+        <Navbar>{this.headerContent()}</Navbar>
         <View
           main
           url={rootPath}

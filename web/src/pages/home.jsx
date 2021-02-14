@@ -7,7 +7,6 @@ export default (props) => {
     return (
       <Block strong>
         You are logged in as {getCurUser()}
-        <Button onClick={logoutClicked}>Logout</Button>
       </Block>
     );
   };
@@ -15,13 +14,8 @@ export default (props) => {
   return (
     <Page>
       <Block strong>
-        <p>Hello world</p>
+        <p>Life's made simple!</p>
         <Link href="/about/">About</Link>
-        <br />
-        <Link href="/login/">Login</Link>
-        <br />
-        <Link href="/signup/">Signup</Link>
-        <br />
       </Block>
       {userInfo()}
     </Page>

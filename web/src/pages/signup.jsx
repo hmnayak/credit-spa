@@ -83,6 +83,7 @@ export default class signup extends React.Component {
       this.showError
     ).then(() => {
       this.props.f7router.navigate("/");
+      window.location.reload();
     });
   };
 }

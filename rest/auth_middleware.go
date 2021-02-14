@@ -18,7 +18,7 @@ func AuthMiddleware(authClient *auth.Client) func(http.Handler) http.Handler {
 			if err != nil {
 				origin := req.Header.Get("Origin")
 				var response ui.Response
-				response = ui.CreateResponse(http.StatusUnauthorized, "Auth Not Ok", nil)
+				response = ui.CreateResponse(http.StatusUnauthorized, "Auth not Ok", nil)
 				ui.Respond(w, response, origin)
 				return
 			} else {

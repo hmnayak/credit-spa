@@ -85,6 +85,7 @@ export default class login extends React.Component {
     e.preventDefault();
     loginWithEmail(this.state.email, this.state.password, this.showError).then(() => {
       this.props.f7router.navigate("/");
+      window.location.reload();
     });
   };
 }
