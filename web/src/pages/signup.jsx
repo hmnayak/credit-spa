@@ -5,6 +5,7 @@ import { signInWithGoogle, signUpWithEmail } from "../services/authsvc";
 export default class signup extends React.Component {
   constructor(props) {
     super(props);
+    props.authPageLoaded(true);
     this.state = {
       email: "",
       password: "",
@@ -12,61 +13,60 @@ export default class signup extends React.Component {
     };
   }
 
-  showSignup = () => {
-    return (
-      <Page>
-        <Block>
-          <form
-            onSubmit={this.onSignupWithEmailClicked}
-            action=""
-            method="GET"
-            className="form-ajax-submit"
-          >
-            <List class="login-list">
-              <ListInput
-                label="Name"
-                type="text"
-                placeholder="Name"
-                value={this.state.name}
-                onInput={(e) => {
-                  this.setState({ name: e.target.value });
-                }}
-              />
-              <ListInput
-                label="Signup with your email"
-                type="email"
-                placeholder="Email address"
-                value={this.state.email}
-                onInput={(e) => {
-                  this.setState({ email: e.target.value });
-                }}
-              />
-              <ListInput
-                label="Signup your password"
-                type="password"
-                placeholder="Password"
-                value={this.state.password}
-                onInput={(e) => {
-                  this.setState({ password: e.target.value });
-                }}
-              />
-            </List>
-            <Button fill type="submit">
-              Signup
-            </Button>
-          </form>
-          <Block>
-            <Button fill onClick={signInWithGoogle}>
-              Sign in with Google
-            </Button>
-          </Block>
-        </Block>
-      </Page>
-    );
-  };
-
   render() {
-    return <Page>{this.showSignup()}</Page>;
+    return (
+      <div class="page no-toolbar no-swipeback login-screen-page">
+        <div class="page-content login-screen-content">
+          <div class="login-screen-title">Credit</div>
+          <Block>
+            <form
+              onSubmit={this.onSignupWithEmailClicked}
+              action=""
+              method="GET"
+              className="form-ajax-submit"
+            >
+              <List class="login-list">
+                <ListInput
+                  label="Name"
+                  type="text"
+                  placeholder="Name"
+                  value={this.state.name}
+                  onInput={(e) => {
+                    this.setState({ name: e.target.value });
+                  }}
+                />
+                <ListInput
+                  label="Signup with your email"
+                  type="email"
+                  placeholder="Email address"
+                  value={this.state.email}
+                  onInput={(e) => {
+                    this.setState({ email: e.target.value });
+                  }}
+                />
+                <ListInput
+                  label="Signup your password"
+                  type="password"
+                  placeholder="Password"
+                  value={this.state.password}
+                  onInput={(e) => {
+                    this.setState({ password: e.target.value });
+                  }}
+                />
+              </List>
+              <Button fill type="submit">
+                Signup
+              </Button>
+            </form>
+            <Block>
+              <Button fill onClick={signInWithGoogle}>
+                Sign in with Google
+              </Button>
+            </Block>
+          </Block>
+        </div>
+      </div>
+    );
   }
 
   showError = (error) => {

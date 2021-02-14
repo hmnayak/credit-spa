@@ -12,67 +12,57 @@ import { loginWithEmail } from "../services/authsvc";
 export default class login extends React.Component {
   constructor(props) {
     super(props);
+    props.authPageLoaded(true);
     this.state = {
       email: "",
       password: "",
     };
   }
 
-  loginHeader = () => {
-    return (
-      <Block strong>
-        <form
-          onSubmit={this.onLoginWithEmailClicked}
-          action=""
-          method="GET"
-          className="form-ajax-submit"
-        >
-          <List>
-            <ListInput
-              label="Login with your email"
-              type="email"
-              placeholder="Email address"
-              value={this.state.email}
-              onInput={(e) => {
-                this.setState({ email: e.target.value });
-              }}
-              required
-            ></ListInput>
-            <ListInput
-              label="Provide your password"
-              type="password"
-              placeholder="Password"
-              value={this.state.password}
-              onInput={(e) => {
-                this.setState({ password: e.target.value });
-              }}
-            />
-          </List>
-          <Button fill type="submit">
-            Login
-          </Button>
-        </form>
-      </Block>
-    );
-  };
-
-  showSignup = () => {
-    return (
-      <Block>
-        <BlockTitle>No Account yet?</BlockTitle>
-        <Button fill href="/signup/">
-          Create a new Account
-        </Button>
-      </Block>
-    );
-  };
-
   render() {
     return (
-      <Page>
-        {this.loginHeader()}
-        {this.showSignup()}
-      </Page>
+      <div class="page no-toolbar no-swipeback login-screen-page">
+        <div class="page-content login-screen-content">
+          <div class="login-screen-title">Credit</div>
+          <Block strong>
+            <form
+              onSubmit={this.onLoginWithEmailClicked}
+              action=""
+              method="GET"
+              className="form-ajax-submit"
+            >
+              <List>
+                <ListInput
+                  label="Login with your email"
+                  type="email"
+                  placeholder="Email address"
+                  value={this.state.email}
+                  onInput={(e) => {
+                    this.setState({ email: e.target.value });
+                  }}
+                  required
+                ></ListInput>
+                <ListInput
+                  label="Provide your password"
+                  type="password"
+                  placeholder="Password"
+                  value={this.state.password}
+                  onInput={(e) => {
+                    this.setState({ password: e.target.value });
+                  }}
+                />
+              </List>
+              <Button fill type="submit">
+                Login
+              </Button>
+              <BlockTitle>No Account yet?</BlockTitle>
+              <Button fill href="/signup/">
+                Create a new Account
+              </Button>
+            </form>
+          </Block>
+        </div>
+      </div>
     );
   }
 
@@ -83,9 +73,11 @@ export default class login extends React.Component {
 
   onLoginWithEmailClicked = (e) => {
     e.preventDefault();
-    loginWithEmail(this.state.email, this.state.password, this.showError).then(() => {
-      this.props.f7router.navigate("/");
-      window.location.reload();
-    });
+    loginWithEmail(this.state.email, this.state.password, this.showError).then(
+      () => {
+        this.props.f7router.navigate("/");
+        window.location.reload();
+      }
+    );
   };
 }

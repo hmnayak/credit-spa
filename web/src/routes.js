@@ -4,7 +4,7 @@ import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
 import { getCurUser } from "./services/authsvc";
 
-export default (setLoading) => {
+export default (setLoading, setAuthScreenLoaded) => {
 
   const authRedirect = (routeContext) => {
     if (getCurUser() !== "Guest") {
@@ -26,6 +26,12 @@ export default (setLoading) => {
     },
   }
 
+  const isAuthPageEntered = {
+    props: {
+      authPageLoaded: setAuthScreenLoaded,
+    },
+  }
+
   return [
     {
       path: "/",
@@ -39,11 +45,13 @@ export default (setLoading) => {
     {
       path: "/login",
       component: LoginPage,
+      options: isAuthPageEntered,
       beforeEnter: [],
     },
     {
       path: "/signup",
       component: SignupPage,
+      options: isAuthPageEntered,
       beforeEnter: [],
     },
     {
