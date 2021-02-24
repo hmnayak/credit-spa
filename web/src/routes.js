@@ -4,7 +4,7 @@ import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
 import { getCurUser } from "./services/authsvc";
 
-export default (setLoading, setAuthScreenLoaded) => {
+export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
 
   const authRedirect = (routeContext) => {
     if (getCurUser() !== "Guest") {
@@ -29,6 +29,7 @@ export default (setLoading, setAuthScreenLoaded) => {
   const isAuthPageEntered = {
     props: {
       authPageLoaded: setAuthScreenLoaded,
+      updateHeader : setHeaderContent
     },
   }
 

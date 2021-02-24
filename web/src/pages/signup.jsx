@@ -1,4 +1,4 @@
-import { Page, Block, Button, List, ListInput } from "framework7-react";
+import { Block, Button, List, ListInput } from "framework7-react";
 import React from "react";
 import { signInWithGoogle, signUpWithEmail } from "../services/authsvc";
 import "../../css/auth.css";
@@ -14,12 +14,17 @@ export default class signup extends React.Component {
     };
   }
 
+  onHomeLinkClicked = (e) => {
+    this.props.authPageLoaded(false);
+    this.props.updateHeader();
+  };
+
   render() {
     return (
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a href="/" className="link">
+            <a href="/" onClick={this.onHomeLinkClicked} className="link">
               Credit
             </a>
           </div>

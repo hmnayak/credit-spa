@@ -1,5 +1,5 @@
 import React from "react";
-import { App, View, Navbar, Link } from "framework7-react";
+import { App, View, Navbar } from "framework7-react";
 import routes from "./routes";
 import { logoutClicked, getCurUser } from "./services/authsvc";
 import "../css/navbar.css";
@@ -80,7 +80,8 @@ export default class Container extends React.Component {
         id="treeples.credit"
         routes={routes(
           this.setLoading.bind(this),
-          this.setAuthScreenLoaded.bind(this)
+          this.setAuthScreenLoaded.bind(this),
+          this.headerContent.bind(this)
         )}
       >
         <Navbar>{this.headerContent()}</Navbar>
