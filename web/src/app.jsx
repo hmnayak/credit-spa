@@ -25,32 +25,32 @@ export default class Container extends React.Component {
 
   loading() {
     if (this.state.isLoading) {
-      return <div class="center">Loading...</div>;
+      return <div className="center">Loading...</div>;
     }
   }
 
   credentialsContent() {
     if (getCurUser() === "Guest") {
       return (
-        <div class="right">
-          <a href="/about/" class="link navlink">
+        <div className="right">
+          <a href="/about/" className="link navlink">
             About
           </a>
-          <a href="/login/" class="link navlink">
+          <a href="/login/" className="link navlink">
             Login
           </a>
-          <a href="/signup/" class="link navlink">
+          <a href="/signup/" className="link navlink">
             Signup
           </a>
         </div>
       );
     } else {
       return (
-        <div class="right">
-          <a href="/about/" class="link navlink">
+        <div className="right">
+          <a href="/about/" className="link navlink">
             About
           </a>
-          <a href="/" class="link navlink" onClick={logoutClicked}>
+          <a href="/" className="link navlink" onClick={logoutClicked}>
             Logout
           </a>
         </div>
@@ -61,14 +61,14 @@ export default class Container extends React.Component {
   headerContent() {
     if (!this.state.isAuthScreen) {
       return (
-        <div class="navbar-inner">
-          <div class="title">Credit</div>
+        <div className="navbar-inner">
+          <div className="title">Credit</div>
           {this.loading()}
           {this.credentialsContent()}
         </div>
       );
     } else {
-      return <div class="page no-navbar no-toolbar" />;
+      return <div className="page no-navbar no-toolbar" />;
     }
   }
 

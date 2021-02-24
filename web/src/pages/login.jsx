@@ -6,7 +6,7 @@ import {
   ListInput,
   BlockTitle,
 } from "framework7-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { loginWithEmail } from "../services/authsvc";
 import "../../css/auth.css";
 
@@ -22,10 +22,10 @@ export default class login extends React.Component {
 
   render() {
     return (
-      <div class="page no-toolbar no-swipeback login-screen-page">
-        <div class="page-content login-screen-content auth-position">
-          <div class="login-screen-title">
-            <a href="/" class="link">
+      <div className="page no-toolbar no-swipeback login-screen-page">
+        <div className="page-content login-screen-content auth-position">
+          <div className="login-screen-title">
+            <a href="/" className="link">
               Credit
             </a>
           </div>

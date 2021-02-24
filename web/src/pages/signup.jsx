@@ -16,10 +16,10 @@ export default class signup extends React.Component {
 
   render() {
     return (
-      <div class="page no-toolbar no-swipeback login-screen-page">
-        <div class="page-content login-screen-content auth-position">
-          <div class="login-screen-title">
-            <a href="/" class="link">
+      <div className="page no-toolbar no-swipeback login-screen-page">
+        <div className="page-content login-screen-content auth-position">
+          <div className="login-screen-title">
+            <a href="/" className="link">
               Credit
             </a>
           </div>
@@ -30,7 +30,7 @@ export default class signup extends React.Component {
               method="GET"
               className="form-ajax-submit"
             >
-              <List class="login-list">
+              <List className="login-list">
                 <ListInput
                   label="Name"
                   type="text"
