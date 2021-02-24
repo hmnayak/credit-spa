@@ -79,16 +79,19 @@ export default class signup extends React.Component {
     alert(error.message + " Please try again", "");
   };
 
+  reNavigate = () => {
+    this.props.f7router.navigate("/");
+    window.location.reload();
+  };
+
   onSignupWithEmailClicked = (e) => {
     e.preventDefault();
     signUpWithEmail(
       this.state.email,
       this.state.password,
       this.state.name,
-      this.showError
-    ).then(() => {
-      this.props.f7router.navigate("/");
-      window.location.reload();
-    });
+      this.showError,
+      this.reNavigate
+    );
   };
 }

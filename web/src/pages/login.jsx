@@ -6,7 +6,7 @@ import {
   ListInput,
   BlockTitle,
 } from "framework7-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { loginWithEmail } from "../services/authsvc";
 import "../../css/auth.css";
 
@@ -76,13 +76,18 @@ export default class login extends React.Component {
     alert(error.message + " Please try again.");
   };
 
+  reNavigate = () => {
+    this.props.f7router.navigate("/");
+    window.location.reload();
+  };
+
   onLoginWithEmailClicked = (e) => {
     e.preventDefault();
-    loginWithEmail(this.state.email, this.state.password, this.showError).then(
-      () => {
-        this.props.f7router.navigate("/");
-        window.location.reload();
-      }
+    loginWithEmail(
+      this.state.email,
+      this.state.password,
+      this.showError,
+      this.reNavigate
     );
   };
 }

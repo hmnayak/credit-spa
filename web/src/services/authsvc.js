@@ -51,26 +51,30 @@ export const signUpWithEmail = (email, password, name, showError) => {
     .auth()
     .createUserWithEmailAndPassword(email, password)
     .then((result) => {
-      return result.user.updateProfile({
+      result.user.updateProfile({
         displayName: name,
       });
+      reNavigate();
     })
     .catch((error) => {
       showError(error);
     });
 };
 
-export const loginWithEmail = (email, password, showError) => {
-  return firebase
+export const loginWithEmail = (email, password, showError, reNavigate) =>  {
+  let retpro =  firebase
     .auth()
     .signInWithEmailAndPassword(email, password)
     .then((res) => {
       user = firebase.auth().currentUser;
-      firebase.auth().currentUser.getIdToken(true).then( (idToken) => {
+      firebase.auth().currentUser.getIdToken(true)
+      .then( (idToken) => {
         userToken = idToken;
         if (typeof Storage !== "undefined") {
+          console.log(idToken);
           localStorage.setItem("userToken", idToken);
         }
+        reNavigate();
       });
       if (typeof Storage !== "undefined") {
         localStorage.setItem("user", user.displayName);
@@ -79,4 +83,5 @@ export const loginWithEmail = (email, password, showError) => {
     .catch((error) => {
       showError(error);
     });
+    return retpro;
 };
