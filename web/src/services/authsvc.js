@@ -71,7 +71,6 @@ export const loginWithEmail = (email, password, showError, reNavigate) =>  {
       .then( (idToken) => {
         userToken = idToken;
         if (typeof Storage !== "undefined") {
-          console.log(idToken);
           localStorage.setItem("userToken", idToken);
         }
         reNavigate();
