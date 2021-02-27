@@ -8,7 +8,6 @@ export default (props) => {
   let aboutPromise = aboutInfoApi();
 
   useEffect(() => {
-    console.log("Inside useEffect");
     aboutPromise
       .then((res) => res.text())
       .then((result) => {

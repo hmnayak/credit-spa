@@ -67,7 +67,6 @@ export default class Container extends React.Component {
     } else {
       return (
         <div className="navbar-inner">
-          {/* <div className="title">Credit</div> */}
           <a href="/" className="link">
             Credit
           </a>

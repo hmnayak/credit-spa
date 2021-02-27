@@ -22,7 +22,6 @@ if (firebase.apps.length == 0) {
 }
 
 firebase.auth().onAuthStateChanged((curuser) => {
-  user = curuser;
 });
 
 export const signInWithGoogle = () => {

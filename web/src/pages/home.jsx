@@ -1,6 +1,6 @@
 import React from "react";
-import { Page, Link, Block, Button } from "framework7-react";
-import { logoutClicked, getCurUser } from "../services/authsvc";
+import { Page, Block } from "framework7-react";
+import { getCurUser } from "../services/authsvc";
 
 export default (props) => {
   const userInfo = () => {
