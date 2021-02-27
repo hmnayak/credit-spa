@@ -50,6 +50,9 @@ export default class Container extends React.Component {
           <a href="/about/" className="link navlink">
             About
           </a>
+          <a href="/signup/" className="link navlink">
+            Signup
+          </a>
           <a href="/" className="link navlink" onClick={logoutClicked}>
             Logout
           </a>
@@ -59,16 +62,19 @@ export default class Container extends React.Component {
   }
 
   headerContent() {
-    if (!this.state.isAuthScreen) {
+    if (this.state.isAuthScreen) {
+      return <div className="page no-navbar no-toolbar" />;
+    } else {
       return (
         <div className="navbar-inner">
-          <div className="title">Credit</div>
+          {/* <div className="title">Credit</div> */}
+          <a href="/" className="link">
+            Credit
+          </a>
           {this.loading()}
           {this.credentialsContent()}
         </div>
       );
-    } else {
-      return <div className="page no-navbar no-toolbar" />;
     }
   }
 
@@ -90,10 +96,13 @@ export default class Container extends React.Component {
           url={rootPath}
           browserHistory
           browserHistorySeparator=""
+          pushState
           browserHistoryRoot=""
           animate={false}
           browserHistoryInitialMatch={false}
-        />
+        >
+          {this.loading()}
+        </View>
       </App>
     );
   }
