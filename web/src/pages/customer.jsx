@@ -1,8 +1,8 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
-import { createInvoice } from "../services/api";
+import { createCustomer } from "../services/api";
 
-export default class invoice extends React.Component {
+export default class customer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -18,7 +18,7 @@ export default class invoice extends React.Component {
       <Page>
         <Block strong>
           <form
-            onSubmit={this.onSubmitInvoiceClicked}
+            onSubmit={this.onSubmitCustomerClicked}
             action=""
             method="GET"
             className="form-ajax-submit"
@@ -66,7 +66,7 @@ export default class invoice extends React.Component {
               ></ListInput>
             </List>
             <Button fill type="submit">
-              Submit Invoice
+              Create Customer
             </Button>
           </form>
         </Block>
@@ -79,10 +79,9 @@ export default class invoice extends React.Component {
     alert(error.message + " Please try again.");
   };
 
-  onSubmitInvoiceClicked = (e) => {
+  onSubmitCustomerClicked = (e) => {
     e.preventDefault();
-
-    createInvoice(
+    createCustomer(
       this.state.name,
       this.state.email,
       this.state.phonenumber,

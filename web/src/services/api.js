@@ -11,7 +11,7 @@ export function aboutInfoApi() {
   return fetch("/api/ping", params);
 }
 
-export function createInvoice(name, email, phonenumber, gstin, ) {
+export function createCustomer(name, email, phonenumber, gstin, ) {
   const data = {
     username : name,
     email: email,

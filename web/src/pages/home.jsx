@@ -43,7 +43,7 @@ export default (props) => {
                 porta justo cursus ac.
                 <p>&nbsp;</p>
                 <div className="card-footer">
-                  <a href="/invoice" className="link">
+                  <a href="/customer" className="link">
                     Billing!
                   </a>
                   <a href="/info" className="link">
