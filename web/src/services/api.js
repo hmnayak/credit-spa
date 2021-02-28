@@ -19,7 +19,7 @@ export function createInvoice(name, email, phonenumber, gstin, ) {
     gstin: gstin
   }
   const params = {
-    method: "PUT",
+    method: "POST",
     headers: {
       "Content-Type": "application/text",
       "Authorization" :  getUserToken()
