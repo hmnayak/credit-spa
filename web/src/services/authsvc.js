@@ -57,8 +57,8 @@ export const signUpWithEmail = (email, password, name, showError) => {
 
 export const loginWithEmail = async (email, password, showError, reNavigate) => {
   await firebase.auth().signInWithEmailAndPassword(email, password).catch(err => showError(err));
-  let user = await firebase.auth().currentUser;
-  const userToken = user.getIdToken(true);
+  let user = firebase.auth().currentUser;
+  const userToken = await user.getIdToken(true);
   if (typeof Storage !== "undefined") {
     localStorage.setItem("userToken", userToken);
     localStorage.setItem("user", user.displayName);
