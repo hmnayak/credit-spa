@@ -26,7 +26,7 @@ export function createCustomer(name, email, phonenumber, gstin, ) {
     },
     body: JSON.stringify(data),
   };
-  return fetch("/api/createInvoice", params)
+  return fetch("/api/createCustomer", params)
   .then(response => response.json())
   .then(data => {
     console.log('Success:', data);
