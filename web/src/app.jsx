@@ -99,9 +99,7 @@ export default class Container extends React.Component {
           browserHistoryRoot=""
           animate={false}
           browserHistoryInitialMatch={false}
-        >
-          {this.loading()}
-        </View>
+        ></View>
       </App>
     );
   }
