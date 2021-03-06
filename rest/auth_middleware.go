@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"firebase.google.com/go/auth"
+	"github.com/hmnayak/credit/contextkeys"
 	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/ui"
 )
@@ -43,7 +44,7 @@ func AuthMiddleware(authClient *auth.Client, mdl *model.Model) func(http.Handler
 			} else {
 				orgID, _ = mdl.Db.GetOrganisationID(userID)
 			}
-			ctx := context.WithValue(req.Context(), "org_id", orgID)
+			ctx := context.WithValue(req.Context(), contextkeys.OrgID, orgID)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}

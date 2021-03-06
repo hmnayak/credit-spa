@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/hmnayak/credit/contextkeys"
 	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/ui"
 )
@@ -26,7 +27,7 @@ func UpsertCustomer(mdl *model.Model) http.Handler {
 			customer.CustomerID = fmt.Sprintf("CUST%04d", n+1)
 		}
 
-		if orgID := r.Context().Value("org_id"); orgID != nil {
+		if orgID := r.Context().Value(contextkeys.OrgID); orgID != nil {
 			customer.OrganisationID = orgID.(string)
 		} else {
 			log.Printf("Error getting orgID from context for customerID: %v", customer.CustomerID)
