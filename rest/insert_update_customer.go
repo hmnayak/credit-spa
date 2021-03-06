@@ -9,8 +9,8 @@ import (
 	"github.com/hmnayak/credit/model"
 )
 
-// CreateCustomer processes PUT requests to upsert customers to db
-func CreateCustomer(mdl *model.Model) http.Handler {
+// UpsertCustomer processes PUT requests to upsert customers to db
+func UpsertCustomer(mdl *model.Model) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var customer model.Customer
 		json.NewDecoder(req.Body).Decode(&customer) // TODO: error handling

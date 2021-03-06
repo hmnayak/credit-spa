@@ -40,7 +40,7 @@ func InitDb(connStr string) (*PostgresDb, error) {
 func (p *PostgresDb) createTable() error {
 	user :=
 		`
-			CREATE TABLE IF NOT EXISTS user_account (
+			CREATE TABLE IF NOT EXISTS user_accounts (
 				id			BIGSERIAL NOT NULL PRIMARY KEY,
 				user_id 	TEXT UNIQUE,
 				id_type		TEXT 
@@ -49,7 +49,7 @@ func (p *PostgresDb) createTable() error {
 
 	organisation :=
 		`
-			CREATE TABLE IF NOT EXISTS organisation (
+			CREATE TABLE IF NOT EXISTS organisations (
 				id			BIGSERIAL NOT NULL PRIMARY KEY,
 				org_id 		TEXT UNIQUE,
 				owner_id	TEXT REFERENCES user_account(user_id)
@@ -58,7 +58,7 @@ func (p *PostgresDb) createTable() error {
 
 	customer :=
 		`
-			CREATE TABLE IF NOT EXISTS customer (
+			CREATE TABLE IF NOT EXISTS customers (
 				id 				BIGSERIAL NOT NULL PRIMARY KEY,
 				customer_id 	TEXT NOT NULL UNIQUE,
 				org_id 			TEXT NOT NULL UNIQUE,

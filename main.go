@@ -67,7 +67,7 @@ func main() {
 	api.Use(loggingMiddleware)
 	api.Use(rest.AuthMiddleware(authClient, mdl))
 
-	api.Handle("/customers", rest.CreateCustomer(mdl)).Methods("PUT")
+	api.Handle("/customers", rest.UpsertCustomer(mdl)).Methods("PUT")
 	api.Handle("/ping", pingHandler(c))
 
 	if config.StaticDir != "" {

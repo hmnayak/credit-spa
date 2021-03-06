@@ -10,7 +10,7 @@ import (
 func (p *PostgresDb) UpsertCustomer(c model.Customer) {
 	query :=
 		`
-		INSERT INTO customer (customer_id, org_id, name, email, phone_no, gstin) 
+		INSERT INTO customers (customer_id, org_id, name, email, phone_no, gstin) 
 		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (customer_id, org_id)
 		DO UPDATE SET
@@ -31,7 +31,7 @@ func (p *PostgresDb) GetCustomerCount() (count int, err error) {
 	query :=
 		`
 		SELECT COUNT(*)
-		FROM customer
+		FROM customers
 		`
 	err = p.dbConn.Get(&count, query)
 	if err != nil {

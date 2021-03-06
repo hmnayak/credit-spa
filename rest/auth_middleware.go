@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -44,7 +43,6 @@ func AuthMiddleware(authClient *auth.Client, mdl *model.Model) func(http.Handler
 			} else {
 				orgID, _ = mdl.Db.GetOrganisationID(userID)
 			}
-			log.Printf("orgID: %v", orgID)
 			ctx := context.WithValue(req.Context(), "org_id", orgID)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})

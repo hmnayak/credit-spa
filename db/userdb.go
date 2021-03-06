@@ -11,7 +11,7 @@ import (
 func (p *PostgresDb) DoesUserExist(userID string) (exists bool, err error) {
 	query :=
 		`
-			SELECT EXISTS(SELECT 1 FROM user_account WHERE user_id=$1)
+			SELECT EXISTS(SELECT 1 FROM user_accounts WHERE user_id=$1)
 		`
 
 	err = p.dbConn.Get(&exists, query, userID)
@@ -29,7 +29,7 @@ func (p *PostgresDb) CreateUser(userID string, idType string) (orgID string, err
 
 	insertUser :=
 		`
-			INSERT INTO user_account (user_id, id_type)
+			INSERT INTO user_accounts (user_id, id_type)
 			VALUES ($1, $2)
 		`
 	_, err = tx.ExecContext(ctx, insertUser, userID, idType)
@@ -41,7 +41,7 @@ func (p *PostgresDb) CreateUser(userID string, idType string) (orgID string, err
 
 	insertOrg :=
 		`
-		INSERT INTO organisation (org_id, owner_id)
+		INSERT INTO organisations (org_id, owner_id)
 		VALUES ($1, $2)
 		`
 	orgID = uuid.NewString()

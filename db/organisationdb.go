@@ -7,7 +7,7 @@ func (p *PostgresDb) GetOrganisationID(userID string) (orgID string, err error) 
 	query :=
 		`
 			SELECT org_id 
-			FROM organisation
+			FROM organisations
 			WHERE owner_id = $1
 		`
 	err = p.dbConn.Get(&orgID, query, userID)
