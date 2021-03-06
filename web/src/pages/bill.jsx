@@ -5,8 +5,15 @@ import { getCustomers } from "../services/api";
 export default (props) => {
   const [customers, setCustomers] = useState([""]);
 
+  let custPromise = getCustomers();
+
   useEffect(() => {
-    setCustomers(getCustomers());
+    custPromise
+      .then((res) => res.text())
+      .then((res) => {
+        console.log(res);
+        setCustomers(res);
+      });
   }, []);
 
   return (

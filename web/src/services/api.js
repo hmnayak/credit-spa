@@ -38,13 +38,12 @@ export function createCustomer(id, name, email, phonenumber, gstin, showError , 
 }
 
 export function getCustomers() {
-  // const params = {
-  //   method: "GET",
-  //   headers: {
-  //     "Content-Type": "application/text",
-  //     "Authorization" :  getUserToken()
-  //   },
-  // };
-  // return fetch("/api/customers", params);
-  return ["Customer1", "Customer2", "Customer3"];
+  const params = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/text",
+      "Authorization" :  getUserToken()
+    },
+  };
+  return fetch("/api/customers", params);
 }
