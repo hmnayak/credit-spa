@@ -7,7 +7,6 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/model"
 )
 
@@ -21,13 +20,6 @@ type Controller struct {
 
 // Init sets up a connection to database with configuration provided
 func (c *Controller) Init(connStr string, authSecret string, authClient *auth.Client) error {
-	db, err := db.InitDb(connStr)
-	if err != nil {
-		log.Fatalln("Error InitDb:", err)
-		return err
-	}
-
-	c.model = model.New(db)
 	c.authSecret = authSecret
 	c.authClient = authClient
 
@@ -125,67 +117,6 @@ func (c *Controller) GetAllRoutes() ([]string, error) {
 	return r, err
 }
 
-// GetCreditorsOnRoute returns all creditors on a given delivery route
-func (c *Controller) GetCreditorsOnRoute(route string) ([]*model.Customer, error) {
-	creditors, err := c.model.Db.GetCustomersOnRoute(route)
-	if err != nil {
-		log.Println("Error GetCustomersOnRoute:", err)
-	}
-
-	return creditors, err
-}
-
-// GetAllCreditors returns a list of all creditors
-func (c *Controller) GetAllCreditors() ([]*model.Customer, error) {
-	creditors, err := c.model.Db.GetAllCustomers()
-	if err != nil {
-		log.Println("Error GetAllCreditors:", err)
-		return creditors, err
-	}
-
-	return creditors, nil
-}
-
-// GetCreditorByID returns the representation of a creditor with the given ID
-func (c *Controller) GetCreditorByID(id int64) (*model.Customer, error) {
-	creditor, err := c.model.Db.GetCustomerByID(id)
-	if err != nil {
-		log.Println("Error GetCreditorByID:", err)
-	}
-
-	return creditor, err
-}
-
-// GetCreditorByNameRoute returns the representation of a creditor with the name and delivery route provided
-func (c *Controller) GetCreditorByNameRoute(route string, name string) (*model.Customer, error) {
-	creditor, err := c.model.Db.GetCustomerByNameRoute(route, name)
-	if err != nil {
-		log.Println("Error GetCreditorByNameRoute:", err)
-	}
-
-	return creditor, err
-}
-
-// CreateCreditor stores a new creditor and returns their id
-func (c *Controller) CreateCreditor(creditor model.Customer) (int64, error) {
-	id, err := c.model.Db.CreateCustomer(creditor)
-	if err != nil {
-		log.Println("Error CreateCustomer:", err)
-	}
-
-	return id, err
-}
-
-// CreateCredit stores a new credit transaction
-func (c *Controller) CreateCredit(credit model.Credit) error {
-	err := c.model.Db.CreateCredit(credit)
-	if err != nil {
-		log.Println("Error CreateCredit:", err)
-	}
-
-	return err
-}
-
 // GetCreditsByCreditor returns all payments made by given creditor
 func (c *Controller) GetCreditsByCreditor(id int64) ([]*model.Credit, error) {
 	credits, err := c.model.Db.GetCreditsByCustomer(id)
@@ -254,24 +185,4 @@ func (c *Controller) DeletePayment(id int) error {
 	}
 
 	return err
-}
-
-// GetAllDefaulters returns all creditors whose due amount exceeds their credit limit
-func (c *Controller) GetAllDefaulters() ([]*model.Customer, error) {
-	d, err := c.model.Db.GetAllDefaulters()
-	if err != nil {
-		log.Println("Error GetAllDefaulters:", err)
-	}
-
-	return d, err
-}
-
-// GetAllDefaultersNew returns all creditors whose due amount exceeds their credit limit
-func (c *Controller) GetAllDefaultersNew() ([]*model.Defaulter, error) {
-	d, err := c.model.Db.GetAllDefaultersNew()
-	if err != nil {
-		log.Println("Error GetAllDefaultersNew:", err)
-	}
-
-	return d, err
 }

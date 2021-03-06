@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hmnayak/credit/model"
@@ -39,32 +38,44 @@ func InitDb(connStr string) (*PostgresDb, error) {
 }
 
 func (p *PostgresDb) createTable() error {
-	createUserTable := `
-		CREATE TABLE IF NOT EXISTS useraccount (
-			id			SERIAL	NOT NULL PRIMARY KEY,
-			name 	 	VARCHAR NOT NULL,
-			password 	VARCHAR NOT NULL,
-			auth 		VARCHAR NOT NULL
-		)
-	`
+	user :=
+		`
+			CREATE TABLE IF NOT EXISTS user_account (
+				id			BIGSERIAL NOT NULL PRIMARY KEY,
+				user_id 	TEXT UNIQUE,
+				id_type		TEXT 
+			)
+		`
+
+	organisation :=
+		`
+			CREATE TABLE IF NOT EXISTS organisation (
+				id			BIGSERIAL NOT NULL PRIMARY KEY,
+				org_id 		TEXT UNIQUE,
+				owner_id	TEXT REFERENCES user_account(user_id)
+			)
+		`
+
+	customer :=
+		`
+			CREATE TABLE IF NOT EXISTS customer (
+				id 				BIGSERIAL NOT NULL PRIMARY KEY,
+				customer_id 	TEXT NOT NULL UNIQUE,
+				org_id 			TEXT NOT NULL UNIQUE,
+				name			TEXT NOT NULL,
+				email	  		TEXT,
+				phone_no 		TEXT,
+				gstin			integer UNIQUE, 
+				CONSTRAINT fk_org_id FOREIGN KEY(org_id) REFERENCES organisation(org_id),
+				CONSTRAINT unique_customer_org UNIQUE (customer_id, org_id)
+			)	
+		`
 
 	createUserSessionTable := `
 		CREATE TABLE IF NOT EXISTS usersession (
 			token		VARCHAR	NOT NULL PRIMARY KEY,
 			username 	VARCHAR NOT NULL,
 			auth		VARCHAR NOT NULL
-		)
-	`
-
-	createCustomerTable := `
-		CREATE TABLE IF NOT EXISTS customer (
-			id 			  	SERIAL  NOT NULL PRIMARY KEY,
-			full_name       VARCHAR	NOT NULL,
-			search_name	  	VARCHAR NOT NULL,
-			delivery_route 	VARCHAR,
-			credit_limit	integer,
-			pay_cycle		integer,
-			UNIQUE (search_name, delivery_route)
 		)
 	`
 
@@ -89,7 +100,12 @@ func (p *PostgresDb) createTable() error {
 		)
 	`
 
-	_, err := p.dbConn.Exec(createUserTable)
+	_, err := p.dbConn.Exec(user)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.dbConn.Exec(organisation)
 	if err != nil {
 		return err
 	}
@@ -99,7 +115,7 @@ func (p *PostgresDb) createTable() error {
 		return err
 	}
 
-	_, err = p.dbConn.Exec(createCustomerTable)
+	_, err = p.dbConn.Exec(customer)
 	if err != nil {
 		return err
 	}
@@ -177,19 +193,6 @@ func (p *PostgresDb) ValidateUser(token string) (model.AuthToken, error) {
 	return user, err
 }
 
-// CreateCustomer creates a new customer in customer table
-func (p *PostgresDb) CreateCustomer(c model.Customer) (int64, error) {
-	var newID int64
-	query := `
-		INSERT INTO	customer (full_name, search_name, delivery_route, credit_limit, pay_cycle) 
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id
-	`
-	err := p.dbConn.QueryRow(query,
-		c.FullName, c.SearchName, strings.ToLower(c.DeliveryRoute), c.CreditLimit, c.PaymentCycle).Scan(&newID)
-	return newID, err
-}
-
 // GetRoutes returns all delivery routes.
 func (p *PostgresDb) GetRoutes() ([]string, error) {
 	r := []string{}
@@ -205,134 +208,6 @@ func (p *PostgresDb) GetRoutes() ([]string, error) {
 	return r, nil
 }
 
-// GetCustomersOnRoute returns all customers on a routes
-func (p *PostgresDb) GetCustomersOnRoute(r string) ([]*model.Customer, error) {
-	creditors := []*model.Customer{}
-	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle
-		FROM customer
-		WHERE delivery_route=$1
-		ORDER BY search_name
-	`
-	rows, err := p.dbConn.Query(query, r)
-	if err != nil {
-		return creditors, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var c model.Customer
-		if err := rows.Scan(&c.ID, &c.FullName, &c.SearchName, &c.DeliveryRoute, &c.CreditLimit, &c.PaymentCycle); err != nil {
-			log.Panicln("error scanning creditor row:", err)
-		}
-		creditors = append(creditors, &c)
-	}
-
-	for _, c := range creditors {
-		due, err := p.GetDueAmount(c.ID)
-		if err != nil {
-			log.Println("Error getting due amount:", err)
-		}
-		c.DueAmount = due
-	}
-
-	return creditors, nil
-}
-
-// GetAllCustomers gets the list of all customers
-func (p *PostgresDb) GetAllCustomers() ([]*model.Customer, error) {
-	creditors := []*model.Customer{}
-	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle
-		FROM customer
-	`
-	err := p.dbConn.Select(&creditors, query)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, c := range creditors {
-		due, err := p.GetDueAmount(c.ID)
-		if err != nil {
-			log.Println("Error getting due amount:", err)
-		}
-		c.DueAmount = due
-	}
-
-	return creditors, err
-}
-
-// GetCustomerByID gets a single customer with the id provided
-func (p *PostgresDb) GetCustomerByID(id int64) (*model.Customer, error) {
-	c := model.Customer{}
-	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle  
-		FROM customer 
-		WHERE id=$1
-	`
-	err := p.dbConn.Get(&c, query, id)
-	if err != nil {
-		return &c, err
-	}
-
-	due, err := p.GetDueAmount(c.ID)
-	if err != nil {
-		log.Println("Error getting due amount:", err)
-		return &c, err
-	}
-	c.DueAmount = due
-
-	credits, err := p.GetCreditsByCustomer(id)
-	if err != nil {
-		log.Println("Error getting latest credit:", err)
-		return &c, err
-	}
-	if len(credits) > 0 {
-		c.LatestCredit = credits[len(credits)-1].Amount
-	}
-
-	return &c, nil
-}
-
-// GetCustomerByNameRoute gets a single customer whose route and name is provided
-func (p *PostgresDb) GetCustomerByNameRoute(route string, name string) (*model.Customer, error) {
-	c := model.Customer{}
-	query := `
-		SELECT id, full_name, search_name, delivery_route, credit_limit, pay_cycle  
-		FROM customer 
-		WHERE delivery_route=$1 AND search_name=$2
-	`
-	err := p.dbConn.Get(&c, query, route, name)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("no customer with delivery route: %v, search_name: %v \n", route, name)
-		}
-		return &c, err
-	}
-
-	due, err := p.GetDueAmount(c.ID)
-	if err != nil {
-		log.Println("Error getting due amount:", err)
-	}
-	c.DueAmount = due
-
-	return &c, nil
-}
-
-// CreateCredit creates a new credit entry
-func (p *PostgresDb) CreateCredit(t model.Credit) error {
-	query := `
-		INSERT INTO credit (customer_id, amount, date, remarks) 
-		VALUES ($1, $2, $3, $4) 
-	`
-	_, err := p.dbConn.Exec(query, t.CustomerID, t.Amount, t.Date, t.Remarks)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetCreditsByCustomer gets all credits received by a customer
 func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Credit, error) {
 	credits := []*model.Credit{}
@@ -345,7 +220,7 @@ func (p *PostgresDb) GetCreditsByCustomer(customerID int64) ([]*model.Credit, er
 	rows, err := p.dbConn.Query(query, customerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("no payments found for customer id: %v \n")
+			log.Printf("no payments found for customer id: \n")
 		}
 		return credits, err
 	}
@@ -423,7 +298,7 @@ func (p *PostgresDb) GetPaymentsByCustomer(customerID int64) ([]*model.Payment, 
 	rows, err := p.dbConn.Query(query, customerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("no payments found for customer id: %v \n")
+			log.Printf("no payments found for customer id: \n")
 		}
 		return payments, err
 	}
@@ -505,31 +380,6 @@ func (p *PostgresDb) GetDueAmount(customerID int) (float64, error) {
 	return dueAmount, nil
 }
 
-// GetAllDefaulters gets a list of creditors defaulting on payments
-func (p *PostgresDb) GetAllDefaulters() ([]*model.Customer, error) {
-	defaulters := []*model.Customer{}
-
-	all, err := p.GetAllCustomers()
-	if err != nil {
-		log.Println("Error getting all customers: ", err)
-		return defaulters, err
-	}
-
-	for _, c := range all {
-		due, err := p.GetDueAmount(c.ID)
-		if err != nil {
-			log.Println("Error getting due amount for customer:", err)
-			return defaulters, err
-		}
-		if due > float64(c.CreditLimit) {
-			c.DueAmount = due
-			defaulters = append(defaulters, c)
-		}
-	}
-
-	return defaulters, nil
-}
-
 func (p *PostgresDb) getLastCreditDateByCreditor(c model.Customer) (string, error) {
 	var lastCreditDate string
 	query := `
@@ -566,119 +416,4 @@ func (p *PostgresDb) getLastPayDateByCreditor(c model.Customer) (string, error) 
 		}
 	}
 	return lastPayDate, err
-}
-
-// GetAllDefaultersNew gets the set of defaulting creditors
-func (p *PostgresDb) GetAllDefaultersNew() ([]*model.Defaulter, error) {
-	defaulters := []*model.Defaulter{}
-
-	all, err := p.GetAllCustomers()
-	if err != nil {
-		log.Println("Error getting all customers: ", err)
-		return defaulters, err
-	}
-
-	potentials := []*model.Defaulter{}
-	for _, c := range all {
-		due, err := p.GetDueAmount(c.ID)
-		if err != nil {
-			log.Println("Error getting due amount for customer:", err)
-			return defaulters, err
-		}
-		if due > float64(c.CreditLimit) {
-			c.DueAmount = due
-			lastCreditDate, err := p.getLastCreditDateByCreditor(*c)
-			if err != nil {
-				return defaulters, err
-			}
-			lastPayDate, err := p.getLastPayDateByCreditor(*c)
-			if err != nil {
-				return defaulters, err
-			}
-			d := model.Defaulter{FullName: c.FullName, SearchName: c.SearchName,
-				DeliveryRoute: c.DeliveryRoute, DueAmount: c.DueAmount,
-				DueFrom:      lastCreditDate,
-				LastPaidOn:   lastPayDate,
-				DefaultCause: "Total due amount exceeds credit limit.",
-			}
-			potentials = append(potentials, &d)
-		}
-	}
-
-	query := `
-		SELECT DISTINCT ON (customer_id)
-			credit.customer_id, 
-			credit.date, 
-			credit.amount,
-			customer.pay_cycle, 
-			customer.full_name, 
-			customer.search_name,
-			customer.delivery_route
-		FROM credit
-		INNER JOIN customer on credit.customer_id = customer.id;
-	`
-
-	rows, err := p.dbConn.Query(query)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Printf("no payments found for customer id: %v \n")
-		}
-		return defaulters, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var d model.Defaulter
-		if err := rows.Scan(&d.ID, &d.DueFrom, &d.LatestCredit, &d.PayCycle, &d.FullName, &d.SearchName, &d.DeliveryRoute); err != nil {
-			log.Panicln("error scanning payment row:", err)
-		}
-		date, err := time.Parse(time.RFC3339, d.DueFrom)
-		if err != nil {
-			log.Println("error parsing date: ", err)
-		}
-		d.DueFrom = date.Format("02-01-2006")
-
-		potentials = append(potentials, &d)
-	}
-
-	query = `
-		SELECT 
-            COALESCE(SUM (amount), 0)
-        FROM
-            payment
-        WHERE TRUE
-            AND customer_id=$1
-            AND amount IN (
-                SELECT 
-                    amount
-                FROM
-                    payment
-                WHERE date > $2
-            )
-        GROUP BY
-            customer_id   
-	`
-	now := time.Now()
-	weekAgo := now.AddDate(0, 0, -7)
-	weekAgoStr := weekAgo.Format("2006-01-02")
-	for _, potential := range potentials {
-		var paymentsInCycle float64
-		err := p.dbConn.Get(&paymentsInCycle, query, potential.ID, weekAgoStr)
-		if err != nil {
-			log.Println("Error getting sum payments in pay cycle:", err)
-		}
-		potential.PaymentInCycle = paymentsInCycle
-		if potential.PaymentInCycle < potential.LatestCredit {
-			potential.DefaultCause = "Credit not repaid within payment cycle"
-			due, err := p.GetDueAmount(potential.ID)
-			if err != nil {
-				log.Println("Error getting due amount for customer:", err)
-				return defaulters, err
-			}
-			potential.DueAmount = due
-			defaulters = append(defaulters, potential)
-		}
-	}
-
-	return defaulters, nil
 }
