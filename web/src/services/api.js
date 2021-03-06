@@ -11,7 +11,7 @@ export function aboutInfoApi() {
   return fetch("/api/ping", params);
 }
 
-export function createCustomer(name, email, phonenumber, gstin, showError ) {
+export function createCustomer(name, email, phonenumber, gstin, showError , showSuccess) {
   const data = {
     name : name,
     email: email,
@@ -29,10 +29,9 @@ export function createCustomer(name, email, phonenumber, gstin, showError ) {
   fetch("/api/createCustomer", params)
   .then(response => response.text())
   .then(data => {
-    console.log('Success:', data);
+    showSuccess();
   })
   .catch((error) => {
-    console.error('Error:', error);
     showError(error)
   });
 }

@@ -78,6 +78,10 @@ export default class customer extends React.Component {
     alert(error.message + " Please try again.");
   };
 
+  showSuccess = () => {
+    alert("Success");
+  };
+
   onSubmitCustomerClicked = (e) => {
     e.preventDefault();
     createCustomer(
@@ -85,7 +89,8 @@ export default class customer extends React.Component {
       this.state.email,
       this.state.phonenumber,
       this.state.gstin,
-      this.showError
+      this.showError,
+      this.showSuccess
     );
   };
 }
