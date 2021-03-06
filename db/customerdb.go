@@ -31,12 +31,28 @@ func (p *PostgresDb) UpsertCustomer(c model.Customer) (err error) {
 func (p *PostgresDb) GetCustomerCount() (count int, err error) {
 	query :=
 		`
-		SELECT COUNT(*)
-		FROM customers
+			SELECT COUNT(*)
+			FROM customers
 		`
 	err = p.dbConn.Get(&count, query)
 	if err != nil {
 		log.Printf("Error getting customers count: %v", err.Error())
+	}
+	return
+}
+
+// GetAllCustomers gets the list of
+func (p *PostgresDb) GetAllCustomers(orgID string) (customers []*model.Customer, err error) {
+	customers = []*model.Customer{}
+	query :=
+		`
+			SELECT customer_id, name, email, phone_no, gstin
+			FROM customers
+			WHERE org_id = $1
+		`
+	err = p.dbConn.Select(&customers, query, orgID)
+	if err != nil {
+		log.Printf("Error getting all customers: %v", err.Error())
 	}
 	return
 }

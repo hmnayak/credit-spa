@@ -67,6 +67,7 @@ func main() {
 	api.Use(loggingMiddleware)
 	api.Use(rest.AuthMiddleware(authClient, mdl))
 
+	api.Handle("/customers", rest.ListCustomers(mdl)).Methods("GET")
 	api.Handle("/customers", rest.UpsertCustomer(mdl)).Methods("PUT")
 	api.Handle("/ping", pingHandler(c))
 

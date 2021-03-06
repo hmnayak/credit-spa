@@ -52,7 +52,7 @@ func (p *PostgresDb) createTable() error {
 			CREATE TABLE IF NOT EXISTS organisations (
 				id			BIGSERIAL NOT NULL PRIMARY KEY,
 				org_id 		TEXT UNIQUE,
-				owner_id	TEXT REFERENCES user_account(user_id)
+				owner_id	TEXT REFERENCES user_accounts(user_id)
 			)
 		`
 
@@ -66,7 +66,7 @@ func (p *PostgresDb) createTable() error {
 				email	  		TEXT,
 				phone_no 		TEXT,
 				gstin			integer UNIQUE, 
-				CONSTRAINT fk_org_id FOREIGN KEY(org_id) REFERENCES organisation(org_id),
+				CONSTRAINT fk_org_id FOREIGN KEY(org_id) REFERENCES organisations(org_id),
 				CONSTRAINT unique_customer_org UNIQUE (customer_id, org_id)
 			)	
 		`
