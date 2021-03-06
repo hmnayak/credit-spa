@@ -13,21 +13,21 @@ export function aboutInfoApi() {
 
 export function createCustomer(name, email, phonenumber, gstin, showError ) {
   const data = {
-    username : name,
+    name : name,
     email: email,
-    phonenumber: phonenumber,
+    phone : phonenumber,
     gstin: gstin
   }
   const params = {
     method: "POST",
     headers: {
-      "Content-Type": "application/text",
+      "Content-Type": "application/json",
       "Authorization" :  getUserToken()
     },
     body: JSON.stringify(data),
   };
-  return fetch("/api/createCustomer", params)
-  .then(response => response.json())
+  fetch("/api/createCustomer", params)
+  .then(response => response.text())
   .then(data => {
     console.log('Success:', data);
   })

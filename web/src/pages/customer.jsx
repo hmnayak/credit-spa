@@ -25,9 +25,9 @@ export default class customer extends React.Component {
           >
             <List>
               <ListInput
-                label="Username"
+                label="Name"
                 type="text"
-                placeholder="User name"
+                placeholder="Name"
                 value={this.state.name}
                 onInput={(e) => {
                   this.setState({ name: e.target.value });
@@ -35,7 +35,7 @@ export default class customer extends React.Component {
                 required
               ></ListInput>
               <ListInput
-                label="Login with your email"
+                label="Email"
                 type="email"
                 placeholder="Email address"
                 value={this.state.email}
@@ -75,7 +75,6 @@ export default class customer extends React.Component {
   }
 
   showError = (error) => {
-    console.error("Failed to login", error);
     alert(error.message + " Please try again.");
   };
 
