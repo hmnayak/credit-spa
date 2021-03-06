@@ -2,28 +2,51 @@ package rest
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
 	"firebase.google.com/go/auth"
+	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/ui"
 )
 
-func AuthMiddleware(authClient *auth.Client) func(http.Handler) http.Handler {
+type contextKey string
+
+const orgIDKey contextKey = "org_id"
+
+func AuthMiddleware(authClient *auth.Client, mdl *model.Model) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			authHeader := req.Header.Get("Authorization")
 			token := strings.Replace(authHeader, "Bearer ", "", 1)
-			_, err := authClient.VerifyIDToken(context.Background(), token)
+			t, err := authClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
 				origin := req.Header.Get("Origin")
 				var response ui.Response
-				response = ui.CreateResponse(http.StatusUnauthorized, "Auth not Ok", nil)
+				response = ui.CreateResponse(http.StatusUnauthorized, fmt.Sprintf("Auth not Ok: %v", err.Error()), nil)
 				ui.Respond(w, response, origin)
 				return
-			} else {
-				next.ServeHTTP(w, req)
 			}
+			var userID string
+			var IDType string
+			if username, found := t.Claims["name"]; found {
+				userID = fmt.Sprintf("%v", username)
+				IDType = "user_name"
+			} else {
+				userID = t.UID
+				IDType = "user_tid"
+			}
+			var orgID string
+			if exists, _ := mdl.Db.DoesUserExist(userID); !exists {
+				orgID, _ = mdl.Db.CreateUser(userID, IDType)
+			} else {
+				orgID, _ = mdl.Db.GetOrganisationID(userID)
+			}
+			log.Printf("orgID: %v", orgID)
+			ctx := context.WithValue(req.Context(), "org_id", orgID)
+			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
 }

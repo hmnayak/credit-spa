@@ -2,8 +2,7 @@ package model
 
 // User is a container of api user information used for login
 type User struct {
-	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"password"`
+	UserID string `db:"user_id" json:"userid"`
 }
 
 // AuthToken is a container of authentication token returned on successful login
