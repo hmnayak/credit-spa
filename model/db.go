@@ -10,4 +10,5 @@ type Db interface {
 	GetCustomerCount() (int, error)
 	UpsertCustomer(Customer) error
 	GetAllCustomers(string) ([]*Customer, error)
+	GetCustomer(string, string) (Customer, error)
 }
