@@ -4,6 +4,7 @@ import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
 import InfoPage from "./pages/info.jsx";
 import CustomerPage from "./pages/customer.jsx"
+import BillPage from "./pages/bill.jsx"
 import { getCurUser } from "./services/authsvc";
 
 export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
@@ -71,7 +72,12 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
     {
       path: "/customer",
       component: CustomerPage,
+      beforeEnter: [],
+    },
+    {
+      path: "/bill",
+      component: BillPage,
       beforeEnter: [authRedirect],
-   },
+    },
   ];
 };

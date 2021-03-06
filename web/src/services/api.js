@@ -36,3 +36,15 @@ export function createCustomer(name, email, phonenumber, gstin, showError ) {
     showError(error)
   });
 }
+
+export function getCustomers() {
+  // const params = {
+  //   method: "GET",
+  //   headers: {
+  //     "Content-Type": "application/text",
+  //     "Authorization" :  getUserToken()
+  //   },
+  // };
+  // return fetch("/api/customers", params);
+  return ["Customer1", "Customer2", "Customer3"];
+}
