@@ -7,7 +7,7 @@ import (
 )
 
 // UpsertCustomer updates customer, if not found inserts a new record
-func (p *PostgresDb) UpsertCustomer(c model.Customer) {
+func (p *PostgresDb) UpsertCustomer(c model.Customer) (err error) {
 	query :=
 		`
 		INSERT INTO customers (customer_id, org_id, name, email, phone_no, gstin) 
@@ -20,10 +20,11 @@ func (p *PostgresDb) UpsertCustomer(c model.Customer) {
 			gstin = EXCLUDED.gstin
 		`
 
-	_, err := p.dbConn.Exec(query, c.CustomerID, c.OrganisationID, c.Name, c.Email, c.PhoneNumber, c.GSTIN)
+	_, err = p.dbConn.Exec(query, c.CustomerID, c.OrganisationID, c.Name, c.Email, c.PhoneNumber, c.GSTIN)
 	if err != nil {
 		log.Printf("Error inserting customer: %v\n", err.Error())
 	}
+	return
 }
 
 // GetCustomerCount gets the count of customer records

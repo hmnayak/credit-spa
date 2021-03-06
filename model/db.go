@@ -23,5 +23,5 @@ type Db interface {
 	GetOrganisationID(string) (string, error)
 
 	GetCustomerCount() (count int, err error)
-	UpsertCustomer(Customer)
+	UpsertCustomer(Customer) (err error)
 }

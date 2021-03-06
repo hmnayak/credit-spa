@@ -8,7 +8,9 @@ import (
 // Respond performs a http response with json encoding of payload if provided
 func Respond(w http.ResponseWriter, res Response, origin string) {
 	w.Header().Set("content-type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", origin)
+	if len(origin) > 0 {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+	}
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers",
 		"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
