@@ -11,22 +11,23 @@ export function aboutInfoApi() {
   return fetch("/api/ping", params);
 }
 
-export function createCustomer(name, email, phonenumber, gstin, showError , showSuccess) {
+export function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
   const data = {
+    customer_id : id,
     name : name,
     email: email,
     phone : phonenumber,
     gstin: gstin
   }
   const params = {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
       "Authorization" :  getUserToken()
     },
     body: JSON.stringify(data),
   };
-  fetch("/api/createCustomer", params)
+  fetch("/api/createCustomers/id", params)
   .then(response => response.text())
   .then(data => {
     showSuccess();

@@ -6,6 +6,7 @@ export default class customer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      id: "",
       name: "",
       email: "",
       phonenumber: "",
@@ -80,11 +81,19 @@ export default class customer extends React.Component {
 
   showSuccess = () => {
     alert("Success");
+    this.setState({
+      id: "",
+      name: "",
+      email: "",
+      phonenumber: "",
+      gstin: "",
+    });
   };
 
   onSubmitCustomerClicked = (e) => {
     e.preventDefault();
     createCustomer(
+      this.state.id,
       this.state.name,
       this.state.email,
       this.state.phonenumber,
