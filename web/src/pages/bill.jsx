@@ -3,13 +3,14 @@ import { Page, Block } from "framework7-react";
 import { getCustomers } from "../services/api";
 
 export default (props) => {
-  const [customers, setCustomers] = useState([""]);
+  const [customers, setCustomers] = useState([]);
 
   let custPromise = getCustomers();
 
   useEffect(() => {
+    // setCustomers(getCustomers);
     custPromise
-      .then((res) => res.text())
+      .then((res) => res.json())
       .then((res) => {
         console.log(res);
         setCustomers(res);
@@ -31,9 +32,9 @@ export default (props) => {
                 <ul style={{ paddingLeft: "0" }}>
                   <li>
                     {customers.map((customer) => (
-                      <li>
-                        <a className="list-button">{customer}</a>
-                      </li>
+                      <a className="list-button" href="/customer/">
+                        {customer.name}
+                      </a>
                     ))}
                   </li>
                 </ul>

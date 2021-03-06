@@ -11,9 +11,9 @@ export function aboutInfoApi() {
   return fetch("/api/ping", params);
 }
 
-export function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
+export async function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
   const data = {
-    customer_id : id,
+    customerid : id,
     name : name,
     email: email,
     phone : phonenumber,
@@ -27,14 +27,17 @@ export function createCustomer(id, name, email, phonenumber, gstin, showError , 
     },
     body: JSON.stringify(data),
   };
-  fetch("/api/createCustomers/id", params)
-  .then(response => response.text())
-  .then(data => {
-    showSuccess();
-  })
+
+  let response =  await fetch("/api/customers", params)
   .catch((error) => {
     showError(error)
   });
+  if(response.ok){
+    showSuccess();
+  }
+  else {
+    showError(response.status);
+  }
 }
 
 export function getCustomers() {
