@@ -26,17 +26,10 @@ func UpsertCustomer(db model.Db) http.Handler {
 			return
 		}
 
-		isNewCustomer := false
+		var isNewCustomer bool
 		if len(customer.CustomerID) == 0 {
 			isNewCustomer = true
-			latestCustomerID, err := db.GetLatestCustomerID(customer.OrganisationID)
-			if err != nil {
-				return
-			}
-			customer.CustomerID, err = createNewCustomerID(latestCustomerID)
-			if err != nil {
-				return
-			}
+			assignCustomerID(db, &customer)
 		}
 
 		err := db.UpsertCustomer(customer)
@@ -54,9 +47,20 @@ func UpsertCustomer(db model.Db) http.Handler {
 	})
 }
 
+func assignCustomerID(db model.Db, customer *model.Customer) (err error) {
+	latestCustomerID, err := db.GetLatestCustomerID(customer.OrganisationID)
+	if err != nil {
+		return
+	}
+	customer.CustomerID, err = createNewCustomerID(latestCustomerID)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func createNewCustomerID(latestCustomerID string) (newID string, err error) {
 	latestIDParts := strings.Split(latestCustomerID, "CUST")
-	log.Println(latestIDParts)
 	latestIDNum, err := strconv.Atoi(latestIDParts[1])
 	if err != nil {
 		return
