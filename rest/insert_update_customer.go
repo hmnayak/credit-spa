@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/hmnayak/credit/contextkeys"
 	"github.com/hmnayak/credit/model"
@@ -30,7 +30,6 @@ func UpsertCustomer(db model.Db) http.Handler {
 		if len(customer.CustomerID) == 0 {
 			isNewCustomer = true
 			latestCustomerID, err := db.GetLatestCustomerID(customer.OrganisationID)
-			createNewCustomerID(latestCustomerID)
 			if err != nil {
 				return
 			}
@@ -55,23 +54,13 @@ func UpsertCustomer(db model.Db) http.Handler {
 	})
 }
 
-func createNewCustomerID(latestCustomerID string) (newCustomerID string, err error) {
+func createNewCustomerID(latestCustomerID string) (newID string, err error) {
+	latestIDParts := strings.Split(latestCustomerID, "CUST")
+	log.Println(latestIDParts)
+	latestIDNum, err := strconv.Atoi(latestIDParts[1])
 	if err != nil {
 		return
 	}
-	rx, err := regexp.Compile("CUST")
-	if err != nil {
-		return
-	}
-	lastIDParts := rx.Split(latestCustomerID, 2)
-	if err != nil {
-		return
-	}
-	lastIDNum, err := strconv.Atoi(lastIDParts[1])
-	if err != nil {
-		return
-	}
-	newIDNum := lastIDNum + 1
-	newCustomerID = fmt.Sprintf("CUST%04d", newIDNum)
+	newID = fmt.Sprintf("CUST%04d", latestIDNum+1)
 	return
 }
