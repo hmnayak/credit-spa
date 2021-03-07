@@ -8,7 +8,6 @@ export default (props) => {
   let custPromise = getCustomers();
 
   useEffect(() => {
-    // setCustomers(getCustomers);
     custPromise
       .then((res) => res.json())
       .then((res) => {
@@ -23,7 +22,7 @@ export default (props) => {
         <div className="list">
           <ul>
             <li>
-              <a className="button" href="/customer/">
+              <a className="button" href="/customers/new">
                 Add new customer
               </a>
             </li>

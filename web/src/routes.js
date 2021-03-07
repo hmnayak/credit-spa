@@ -2,9 +2,8 @@ import LoginPage from "./pages/login.jsx";
 import AboutPage from "./pages/about.jsx";
 import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
-import InfoPage from "./pages/info.jsx";
-import CustomerPage from "./pages/customer.jsx"
-import BillPage from "./pages/bill.jsx"
+import NewCustomerPage from "./pages/customers/customer.jsx"
+import CustomersPage from "./pages/customers.jsx"
 import { getCurUser } from "./services/authsvc";
 
 export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
@@ -65,18 +64,13 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
       beforeEnter: [authRedirect, loadingFilter],
     },
     {
-       path: "/info",
-       component: InfoPage,
-       beforeEnter: [],
+      path: "/customers",
+      component: CustomersPage,
+      beforeEnter: [authRedirect],
     },
     {
-      path: "/customer",
-      component: CustomerPage,
-      beforeEnter: [],
-    },
-    {
-      path: "/bill",
-      component: BillPage,
+      path: "/customers/new",
+      component: NewCustomerPage,
       beforeEnter: [authRedirect],
     },
   ];
