@@ -2,14 +2,11 @@ package controller
 
 import (
 	"firebase.google.com/go/auth"
-
-	"github.com/hmnayak/credit/model"
 )
 
 // Controller processes http requests.
 // It contains a reference to the data store to perform CRUD operations.
 type Controller struct {
-	model      *model.Model
 	authSecret string
 	authClient *auth.Client
 }

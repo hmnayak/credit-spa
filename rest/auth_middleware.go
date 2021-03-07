@@ -16,7 +16,7 @@ type contextKey string
 
 const orgIDKey contextKey = "org_id"
 
-func AuthMiddleware(authClient *auth.Client, mdl *model.Model) func(http.Handler) http.Handler {
+func AuthMiddleware(authClient *auth.Client, db model.Db) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			authHeader := req.Header.Get("Authorization")
@@ -39,10 +39,10 @@ func AuthMiddleware(authClient *auth.Client, mdl *model.Model) func(http.Handler
 				IDType = "user_tid"
 			}
 			var orgID string
-			if exists, _ := mdl.Db.DoesUserExist(userID); !exists {
-				orgID, _ = mdl.Db.CreateUser(userID, IDType)
+			if exists, _ := db.DoesUserExist(userID); !exists {
+				orgID, _ = db.CreateUser(userID, IDType)
 			} else {
-				orgID, _ = mdl.Db.GetOrganisationID(userID)
+				orgID, _ = db.GetOrganisationID(userID)
 			}
 			ctx := context.WithValue(req.Context(), contextkeys.OrgID, orgID)
 			next.ServeHTTP(w, req.WithContext(ctx))

@@ -10,14 +10,14 @@ import (
 )
 
 // ListCustomers is a handler to get all customers of an organisation
-func ListCustomers(mdl *model.Model) http.Handler {
+func ListCustomers(db model.Db) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgID := r.Context().Value(contextkeys.OrgID)
 		if orgID == nil {
 			log.Printf("No orgID in context")
 			return
 		}
-		customers, err := mdl.Db.GetAllCustomers(orgID.(string))
+		customers, err := db.GetAllCustomers(orgID.(string))
 
 		if err != nil {
 			ui.RespondError(w, http.StatusInternalServerError, "")

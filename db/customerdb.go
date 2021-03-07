@@ -28,13 +28,14 @@ func (p *PostgresDb) UpsertCustomer(c model.Customer) (err error) {
 }
 
 // GetCustomerCount gets the count of customer records
-func (p *PostgresDb) GetCustomerCount() (count int, err error) {
+func (p *PostgresDb) GetCustomerCount(orgID string) (count int, err error) {
 	query :=
 		`
 			SELECT COUNT(*)
 			FROM customers
+			WHERE org_id = $1
 		`
-	err = p.dbConn.Get(&count, query)
+	err = p.dbConn.Get(&count, query, orgID)
 	if err != nil {
 		log.Printf("Error getting customers count: %v", err.Error())
 	}

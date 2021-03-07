@@ -12,20 +12,10 @@ import (
 )
 
 // UpsertCustomer processes PUT requests to upsert customers to db
-func UpsertCustomer(mdl *model.Model) http.Handler {
+func UpsertCustomer(db model.Db) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var customer model.Customer
 		json.NewDecoder(r.Body).Decode(&customer) // TODO: error handling
-
-		isNewCustomer := false
-		if len(customer.CustomerID) == 0 {
-			isNewCustomer = true
-			n, err := mdl.Db.GetCustomerCount()
-			if err != nil {
-				return // TODO: error handling
-			}
-			customer.CustomerID = fmt.Sprintf("CUST%04d", n+1)
-		}
 
 		if orgID := r.Context().Value(contextkeys.OrgID); orgID != nil {
 			customer.OrganisationID = orgID.(string)
@@ -34,7 +24,17 @@ func UpsertCustomer(mdl *model.Model) http.Handler {
 			return
 		}
 
-		err := mdl.Db.UpsertCustomer(customer)
+		isNewCustomer := false
+		if len(customer.CustomerID) == 0 {
+			isNewCustomer = true
+			n, err := db.GetCustomerCount(customer.OrganisationID)
+			if err != nil {
+				return // TODO: error handling
+			}
+			customer.CustomerID = fmt.Sprintf("CUST%04d", n+1)
+		}
+
+		err := db.UpsertCustomer(customer)
 		if err != nil {
 			ui.RespondError(w, http.StatusInternalServerError, "")
 			return
