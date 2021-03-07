@@ -4,17 +4,24 @@ import { getCustomers } from "../services/api";
 
 export default (props) => {
   const [customers, setCustomers] = useState([]);
+  const [custPromise, setCustPromise] = useState(null);
 
-  let custPromise = getCustomers();
+  function recieveCustProm(prom) {
+    setCustPromise(prom);
+  }
 
-  useEffect(() => {
+  if (!custPromise) {
+    getCustomers(recieveCustProm);
+  }
+
+  if (custPromise) {
     custPromise
       .then((res) => res.json())
       .then((res) => {
         console.log(res);
         setCustomers(res);
       });
-  }, []);
+  }
 
   return (
     <Page>
@@ -31,7 +38,11 @@ export default (props) => {
                 <ul style={{ paddingLeft: "0" }}>
                   <li>
                     {customers.map((customer) => (
-                      <a key={customer.customerid} className="list-button" href="/customer/">
+                      <a
+                        key={customer.customerid}
+                        className="list-button"
+                        href="/customer/"
+                      >
                         {customer.name}
                       </a>
                     ))}

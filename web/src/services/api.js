@@ -1,16 +1,25 @@
 import { getUserToken } from "../services/authsvc";
 
-export function aboutInfoApi() {
+let pingAbout = null;
+export async function aboutInfoApi(prom) {
+  pingAbout = prom;
+  await getUserToken(pingApi);
+}
+
+function pingApi(userToken) {
   const params = {
     method: "GET",
     headers: {
-      "Authorization": getUserToken()
+      "Authorization": userToken
     },
   };
-  return fetch("/api/ping", params);
+  pingAbout(fetch("/api/ping", params));
 }
 
-export async function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
+let custData = null;
+let showError = null;
+let showSuccess = null;
+export async function createCustomer(id, name, email, phonenumber, gstin, error , success) {
   const data = {
     customerid : id,
     name : name,
@@ -18,14 +27,21 @@ export async function createCustomer(id, name, email, phonenumber, gstin, showEr
     phone : phonenumber,
     gstin: gstin
   }
+  showSuccess = success;
+  showError = error;
+  custData = data;
 
+  await getUserToken(createNewCust);
+}
+
+async function createNewCust(userToken) {
   const params = {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "Authorization" :  getUserToken()
+      "Authorization" : userToken
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(custData),
   };
 
   let response =  await fetch("/api/customers", params).catch(err => showError(err) );
@@ -36,12 +52,18 @@ export async function createCustomer(id, name, email, phonenumber, gstin, showEr
   }
 }
 
-export function getCustomers() {
+let custList= null;
+export async function getCustomers(prom) {
+  custList = prom;
+  await getUserToken(updateCustList);
+}
+
+function updateCustList(userToken) {
   const params = {
     method: "GET",
     headers: {
-      "Authorization" :  getUserToken()
+      "Authorization" :  userToken
     },
   };
-  return fetch("/api/customers", params);
+  custList(fetch("/api/customers", params));
 }

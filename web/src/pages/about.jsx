@@ -4,17 +4,24 @@ import { aboutInfoApi } from "../services/api";
 
 export default (props) => {
   const [item, setItem] = useState("");
+  const [aboutPromise, setAboutPromise] = useState(null);
 
-  let aboutPromise = aboutInfoApi();
+  function receivePromise(prom) {
+    setAboutPromise(prom);
+  }
 
-  useEffect(() => {
+  if (!aboutPromise) {
+    aboutInfoApi(receivePromise);
+  }
+
+  if (aboutPromise) {
     aboutPromise
       .then((res) => res.text())
       .then((result) => {
         props.loadComplete(false);
         setItem(result);
       });
-  }, []);
+  }
 
   return (
     <Page>
