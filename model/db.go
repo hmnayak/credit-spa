@@ -7,7 +7,7 @@ type Db interface {
 
 	GetOrganisationID(string) (string, error)
 
-	GetCustomerCount() (int, error)
+	GetCustomerCount(string) (int, error)
 	UpsertCustomer(Customer) error
 	GetAllCustomers(string) ([]*Customer, error)
 	GetCustomer(string, string) (Customer, error)

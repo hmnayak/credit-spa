@@ -11,7 +11,7 @@ import (
 )
 
 // GetCustomer process requests to get customer details of a single customer
-func GetCustomer(mdl *model.Model) http.Handler {
+func GetCustomer(db model.Db) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		customerID := params["customerid"]
@@ -22,7 +22,7 @@ func GetCustomer(mdl *model.Model) http.Handler {
 			return
 		}
 
-		customer, err := mdl.Db.GetCustomer(customerID, orgID.(string))
+		customer, err := db.GetCustomer(customerID, orgID.(string))
 		if err != nil {
 			ui.RespondError(w, http.StatusInternalServerError, "")
 			return

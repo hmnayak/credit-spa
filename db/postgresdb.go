@@ -55,12 +55,12 @@ func (p *PostgresDb) createTable() error {
 		`
 			CREATE TABLE IF NOT EXISTS customers (
 				id 				BIGSERIAL NOT NULL PRIMARY KEY,
-				customer_id 	TEXT NOT NULL UNIQUE,
-				org_id 			TEXT NOT NULL UNIQUE,
+				customer_id 	TEXT NOT NULL,
+				org_id 			TEXT NOT NULL,
 				name			TEXT NOT NULL,
 				email	  		TEXT,
 				phone_no 		TEXT,
-				gstin			VARCHAR(15) UNIQUE, 
+				gstin			TEXT, 
 				CONSTRAINT fk_org_id FOREIGN KEY(org_id) REFERENCES organisations(org_id),
 				CONSTRAINT unique_customer_org UNIQUE (customer_id, org_id)
 			)	

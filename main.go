@@ -14,7 +14,6 @@ import (
 
 	"github.com/hmnayak/credit/controller"
 	"github.com/hmnayak/credit/db"
-	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/rest"
 	"github.com/hmnayak/credit/ui"
 )
@@ -60,16 +59,15 @@ func main() {
 		log.Fatalln("Error InitDb:", err)
 	}
 
-	mdl := model.New(db)
 	r := mux.NewRouter()
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(loggingMiddleware)
-	api.Use(rest.AuthMiddleware(authClient, mdl))
+	api.Use(rest.AuthMiddleware(authClient, db))
 
-	api.Handle("/customers", rest.UpsertCustomer(mdl)).Methods("PUT")
-	api.Handle("/customers", rest.ListCustomers(mdl)).Methods("GET")
-	api.Handle("/customers/{customerid}", rest.GetCustomer(mdl)).Methods("GET")
+	api.Handle("/customers", rest.UpsertCustomer(db)).Methods("PUT")
+	api.Handle("/customers", rest.ListCustomers(db)).Methods("GET")
+	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
 	api.Handle("/ping", pingHandler(c))
 
 	if config.StaticDir != "" {
