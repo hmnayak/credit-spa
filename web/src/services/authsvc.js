@@ -37,6 +37,7 @@ export const logoutClicked = () => {
     .catch((error) => {
       console.error("Error while trying out user", error);
     });
+  localStorage.removeItem("userToken");
   window.location.reload();
 };
 
@@ -63,5 +64,10 @@ export const loginWithEmail = async (email, password, showError, reNavigate) => 
     localStorage.setItem("userToken", userToken);
     localStorage.setItem("user", user.displayName);
   }
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch((error) => {
+    showError(error.message);
+  });
+
   reNavigate();
 };
