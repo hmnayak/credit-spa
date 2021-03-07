@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/hmnayak/credit/model"
@@ -29,16 +30,18 @@ func (p *PostgresDb) UpsertCustomer(c model.Customer) (err error) {
 
 // GetLatestCustomerID gets the id assigned to last inserted customer
 func (p *PostgresDb) GetLatestCustomerID(orgID string) (customerID string, err error) {
+	var nullableID sql.NullString
 	query :=
 		`
 			SELECT MAX(customer_id)
 			FROM customers
 			WHERE org_id = $1
 		`
-	err = p.dbConn.Get(&customerID, query, orgID)
+	err = p.dbConn.Get(&nullableID, query, orgID)
 	if err != nil {
 		log.Printf("Error getting customers count: %v", err.Error())
 	}
+	customerID = nullableID.String
 	return
 }
 

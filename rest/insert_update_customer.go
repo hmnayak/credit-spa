@@ -60,6 +60,11 @@ func assignCustomerID(db model.Db, customer *model.Customer) (err error) {
 }
 
 func createNewCustomerID(latestCustomerID string) (newID string, err error) {
+	if len(latestCustomerID) == 0 {
+		newID = "CUST0001"
+		return
+	}
+
 	latestIDParts := strings.Split(latestCustomerID, "CUST")
 	latestIDNum, err := strconv.Atoi(latestIDParts[1])
 	if err != nil {
