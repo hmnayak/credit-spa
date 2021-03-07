@@ -40,7 +40,7 @@ export const logoutClicked = () => {
   window.location.reload();
 };
 
-export const signUpWithEmail = (email, password, name, showError) => {
+export const signUpWithEmail = (email, password, name, showError, reNavigate) => {
   firebase
     .auth()
     .createUserWithEmailAndPassword(email, password)
