@@ -57,7 +57,7 @@ export default class customer extends React.Component {
               ></ListInput>
               <ListInput
                 label="GSTIN"
-                type="number"
+                type="text"
                 placeholder="GSTIN"
                 value={this.state.gstin}
                 onInput={(e) => {

@@ -4,8 +4,7 @@ export function aboutInfoApi() {
   const params = {
     method: "GET",
     headers: {
-      "Content-Type": "application/text",
-      "Authorization" :  getUserToken()
+      "Authorization": getUserToken()
     },
   };
   return fetch("/api/ping", params);
@@ -19,6 +18,7 @@ export async function createCustomer(id, name, email, phonenumber, gstin, showEr
     phone : phonenumber,
     gstin: gstin
   }
+
   const params = {
     method: "PUT",
     headers: {
@@ -28,14 +28,10 @@ export async function createCustomer(id, name, email, phonenumber, gstin, showEr
     body: JSON.stringify(data),
   };
 
-  let response =  await fetch("/api/customers", params)
-  .catch((error) => {
-    showError(error)
-  });
-  if(response.ok){
+  let response =  await fetch("/api/customers", params).catch(err => showError(err) );
+  if(response.ok) {
     showSuccess();
-  }
-  else {
+  } else {
     showError(response.status);
   }
 }
@@ -44,7 +40,6 @@ export function getCustomers() {
   const params = {
     method: "GET",
     headers: {
-      "Content-Type": "application/text",
       "Authorization" :  getUserToken()
     },
   };
