@@ -13,12 +13,7 @@ export default (props) => {
         <div className="row">
           <div className="card">
             <div className="card-content card-content-padding">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-              ac diam ac quam euismod porta vel a nunc. Quisque sodales
-              scelerisque est, at porta justo cursus ac. Lorem ipsum dolor sit
-              amet, consectetur adipiscing elit. Quisque ac diam ac quam euismod
-              porta vel a nunc. Quisque sodales scelerisque est, at porta justo
-              cursus ac.
+              customer billing
               <p>&nbsp;</p>
               <div className="card-footer">
                 <a href="/customers" className="link">
