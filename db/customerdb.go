@@ -27,15 +27,15 @@ func (p *PostgresDb) UpsertCustomer(c model.Customer) (err error) {
 	return
 }
 
-// GetCustomerCount gets the count of customer records
-func (p *PostgresDb) GetCustomerCount(orgID string) (count int, err error) {
+// GetLatestCustomerID gets the id assigned to last inserted customer
+func (p *PostgresDb) GetLatestCustomerID(orgID string) (customerID string, err error) {
 	query :=
 		`
-			SELECT COUNT(*)
+			SELECT MAX(customer_id)
 			FROM customers
 			WHERE org_id = $1
 		`
-	err = p.dbConn.Get(&count, query, orgID)
+	err = p.dbConn.Get(&customerID, query, orgID)
 	if err != nil {
 		log.Printf("Error getting customers count: %v", err.Error())
 	}
