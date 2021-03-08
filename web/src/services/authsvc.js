@@ -10,35 +10,19 @@ const config = {
   appId: "1:486648757058:web:1232aa94de5f9be53926db",
 };
 
-if (firebase.apps.length == 0) {
-  firebase.initializeApp(config);
-}
-
 export let getCurUser = () => {
   return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
 };
 
-let returnToken = null;
+export let getUserToken = () => 
+  !localStorage.getItem("userToken") ? "Guest" : localStorage.getItem("userToken");
 
-export let getUserToken = async (pingApi) => {
-  returnToken = pingApi;
-  
-  const user = firebase.auth().currentUser;  // currentUser is returned null if the page refreshed and hence the onAuthStateChanged to be used
-  if(user) {
-    const userToken = await user.getIdToken();
-    pingApi(userToken);
-  }
+if (firebase.apps.length == 0) {
+  firebase.initializeApp(config);
 }
 
-firebase.auth().onAuthStateChanged(async (curuser) => {
-  if(curuser) {
-    const userToken = await curuser.getIdToken();
-    if(returnToken) {
-      returnToken(userToken);
-    }
-  }
+firebase.auth().onAuthStateChanged((curuser) => {
 });
-
 
 export const signInWithGoogle = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -53,7 +37,7 @@ export const logoutClicked = () => {
     .catch((error) => {
       console.error("Error while trying out user", error);
     });
-  // localStorage.removeItem("userToken");
+  localStorage.removeItem("userToken");
   window.location.reload();
 };
 
@@ -75,9 +59,9 @@ export const signUpWithEmail = (email, password, name, showError, reNavigate) =>
 export const loginWithEmail = async (email, password, showError, reNavigate) => {
   await firebase.auth().signInWithEmailAndPassword(email, password).catch(err => showError(err));
   const user = firebase.auth().currentUser;
-  // const userToken = await user.getIdToken(true);
+  const userToken = await user.getIdToken(true);
   if (typeof Storage !== "undefined") {
-    // localStorage.setItem("userToken", userToken);
+    localStorage.setItem("userToken", userToken);
     localStorage.setItem("user", user.displayName);
   }
   firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
