@@ -10,18 +10,55 @@ const config = {
   appId: "1:486648757058:web:1232aa94de5f9be53926db",
 };
 
-export let getCurUser = () => {
-  return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
-};
-
-export let getUserToken = () => 
-  !localStorage.getItem("userToken") ? "Guest" : localStorage.getItem("userToken");
-
 if (firebase.apps.length == 0) {
   firebase.initializeApp(config);
 }
 
-firebase.auth().onAuthStateChanged((curuser) => {
+const currentUser = new Promise((resolve, reject) => {
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      resolve(user);
+    } else {
+      reject('nouser');
+    }
+  });
+});
+
+export let getToken = async () => {
+  return currentUser.then(async (user) => {
+    return await user.getIdToken();
+  }).catch((err) => {
+    return Promise.reject(err);
+  });
+};
+
+// todo: deprecate
+export let getCurUser = () => {
+  return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
+};
+
+// todo: deprecate
+let returnToken = null;
+
+// todo: deprecate
+export let getUserToken = async (pingApi) => {
+  returnToken = pingApi;
+  
+  const user = firebase.auth().currentUser;  // currentUser is returned null if the page refreshed and hence the onAuthStateChanged to be used
+  if(user) {
+    const userToken = await user.getIdToken();
+    pingApi(userToken);
+  }
+}
+
+// todo: deprecate
+firebase.auth().onAuthStateChanged(async (curuser) => {
+  if(curuser) {
+    const userToken = await curuser.getIdToken();
+    if(returnToken) {
+      returnToken(userToken);
+    }
+  }
 });
 
 export const signInWithGoogle = () => {
@@ -57,17 +94,11 @@ export const signUpWithEmail = (email, password, name, showError, reNavigate) =>
 };
 
 export const loginWithEmail = async (email, password, showError, reNavigate) => {
-  await firebase.auth().signInWithEmailAndPassword(email, password).catch(err => showError(err));
-  const user = firebase.auth().currentUser;
-  const userToken = await user.getIdToken(true);
-  if (typeof Storage !== "undefined") {
-    localStorage.setItem("userToken", userToken);
-    localStorage.setItem("user", user.displayName);
+  try {
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    await firebase.auth().signInWithEmailAndPassword(email, password)  
+    reNavigate();  
+  } catch(err) {
+    showError(err);
   }
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .catch((error) => {
-    showError(error.message);
-  });
-
-  reNavigate();
 };

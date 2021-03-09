@@ -102,7 +102,7 @@ func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		origin := req.Header.Get("Origin")
 		var response ui.Response
-		response = ui.CreateResponse(http.StatusOK, "OK", nil)
+		response = ui.CreateResponse(http.StatusOK, `{ "status": "OK" }`, nil)
 		ui.Respond(res, response, origin)
 	})
 }

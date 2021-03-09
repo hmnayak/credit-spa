@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Page, Link } from "framework7-react";
-import { aboutInfoApi } from "../services/api";
+import { pingApi } from "../services/pingapi";
 
 export default (props) => {
   const [item, setItem] = useState("");
 
-  let aboutPromise = aboutInfoApi();
-
   useEffect(() => {
-    aboutPromise
-      .then((res) => res.text())
-      .then((result) => {
-        props.loadComplete(false);
-        setItem(result);
-      });
-  }, []);
+    pingApi(props.fetch)
+    .then(res => {
+      setItem(res.status);
+    });
+  }, [item]);
 
   return (
     <Page>
