@@ -1,15 +1,33 @@
 import { getUserToken } from "../services/authsvc";
+import { getToken } from "../services/authsvc";
 
-export function aboutInfoApi() {
-  const params = {
-    method: "GET",
-    headers: {
-      "Authorization": getUserToken()
-    },
-  };
-  return fetch("/api/ping", params);
+export function fetchFn(setLoading) {
+  return async function(url, params) {
+    try {
+      setLoading(true);
+
+      const token = await getToken();
+      params.headers = Object.assign(params.headers || {}, {
+        "Authorization": token,
+      });
+  
+      return fetch(url, params).then(res => {
+        if (res.status == 401) {
+          window.location.href = '/login';
+        }
+        return res.json();
+      });
+    } catch(err) {
+      if (err == 'nouser') {
+        window.location.href = '/login';
+      }
+    } finally {
+      setLoading(false);
+    }
+  }  
 }
 
+// todo: move to separate file
 export async function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
   const data = {
     customerid : id,
@@ -36,6 +54,7 @@ export async function createCustomer(id, name, email, phonenumber, gstin, showEr
   }
 }
 
+// todo: move to separate file
 export function getCustomers() {
   const params = {
     method: "GET",

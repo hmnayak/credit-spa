@@ -5,9 +5,11 @@ import SignupPage from "./pages/signup.jsx";
 import NewCustomerPage from "./pages/customers/customer.jsx"
 import CustomersPage from "./pages/customers.jsx"
 import { getCurUser } from "./services/authsvc";
+import { fetchFn } from "./services/api";
 
 export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
 
+  // todo: deprecate
   const authRedirect = (routeContext) => {
     if (getCurUser() !== "Guest") {
       routeContext.resolve();
@@ -17,6 +19,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
     }
   }
 
+  // todo: deprecate
   const loadingFilter = (routeContext) => {
     setLoading(true);
     routeContext.resolve();
@@ -24,6 +27,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
 
   const routeOpts = {
     props: {
+      fetch: fetchFn(setLoading),
       loadComplete: setLoading,
     },
   }
@@ -61,7 +65,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
       path: "/about",
       component: AboutPage,
       options: routeOpts,
-      beforeEnter: [authRedirect, loadingFilter],
+      beforeEnter: [],
     },
     {
       path: "/customers",
