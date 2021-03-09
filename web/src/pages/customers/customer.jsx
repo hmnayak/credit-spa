@@ -11,6 +11,7 @@ export default class customer extends React.Component {
       email: "",
       phonenumber: "",
       gstin: "",
+      errorMsg: "",
     };
   }
 
@@ -65,6 +66,7 @@ export default class customer extends React.Component {
                 }}
                 required
               ></ListInput>
+              <p style={{ color: "red" }}>{this.state.errorMsg}</p>
             </List>
             <Button fill type="submit">
               Create Customer
@@ -76,7 +78,9 @@ export default class customer extends React.Component {
   }
 
   showError = (error) => {
-    alert(error.message + " Please try again.");
+    this.setState({
+      errorMsg: error.message,
+    });
   };
 
   showSuccess = () => {

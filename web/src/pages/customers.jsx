@@ -31,7 +31,11 @@ export default (props) => {
                 <ul style={{ paddingLeft: "0" }}>
                   <li>
                     {customers.map((customer) => (
-                      <a key={customer.customerid} className="list-button" href="/customer/">
+                      <a
+                        key={customer.customerid}
+                        className="list-button"
+                        href="/customer/"
+                      >
                         {customer.name}
                       </a>
                     ))}

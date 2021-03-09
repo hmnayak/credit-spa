@@ -11,6 +11,7 @@ export default class signup extends React.Component {
       email: "",
       password: "",
       name: "",
+      errorMsg: "",
     };
   }
 
@@ -63,6 +64,7 @@ export default class signup extends React.Component {
                     this.setState({ password: e.target.value });
                   }}
                 />
+                <p style={{ color: "red" }}>{this.state.errorMsg}</p>
               </List>
               <Button fill type="submit">
                 Signup
@@ -80,8 +82,9 @@ export default class signup extends React.Component {
   }
 
   showError = (error) => {
-    console.error("Failed to create User", error);
-    alert(error.message + " Please try again", "");
+    this.setState({
+      errorMsg: error.message,
+    });
   };
 
   reNavigate = () => {

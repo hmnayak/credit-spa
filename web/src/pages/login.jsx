@@ -10,6 +10,7 @@ export default class login extends React.Component {
     this.state = {
       email: "",
       password: "",
+      errorMsg: "",
     };
   }
 
@@ -54,6 +55,7 @@ export default class login extends React.Component {
                     this.setState({ password: e.target.value });
                   }}
                 />
+                <p style={{ color: "red" }}>{this.state.errorMsg}</p>
               </List>
               <Button fill type="submit">
                 Login
@@ -70,8 +72,9 @@ export default class login extends React.Component {
   }
 
   showError = (error) => {
-    console.error("Failed to login", error);
-    alert(error.message + " Please try again.");
+    this.setState({
+      errorMsg: error.message,
+    });
   };
 
   reNavigate = () => {
