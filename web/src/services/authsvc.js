@@ -26,6 +26,7 @@ const currentUser = new Promise((resolve, reject) => {
 
 export let getToken = async () => {
   return currentUser.then(async (user) => {
+    localStorage.setItem("user", user.displayName);
     return await user.getIdToken();
   }).catch((err) => {
     return Promise.reject(err);
@@ -74,7 +75,7 @@ export const logoutClicked = () => {
     .catch((error) => {
       console.error("Error while trying out user", error);
     });
-  localStorage.removeItem("userToken");
+  localStorage.removeItem("user");
   window.location.reload();
 };
 

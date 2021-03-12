@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Page, Block } from "framework7-react";
-import { getCustomers } from "../services/api";
+import { getCustomersApi } from "../services/custapi";
 
 export default (props) => {
   const [customers, setCustomers] = useState([]);
 
-  let custPromise = getCustomers();
-
   useEffect(() => {
-    custPromise
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res);
-        setCustomers(res);
-      });
+    getCustomersApi(props.fetch).then((res) => {
+      setCustomers(res);
+    });
   }, []);
 
   return (

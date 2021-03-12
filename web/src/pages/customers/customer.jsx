@@ -1,6 +1,6 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
-import { createCustomer } from "../../services/api";
+import { createCustomer } from "../../services/custapi";
 
 export default class customer extends React.Component {
   constructor(props) {
@@ -97,6 +97,7 @@ export default class customer extends React.Component {
   onSubmitCustomerClicked = (e) => {
     e.preventDefault();
     createCustomer(
+      this.props.fetch,
       this.state.id,
       this.state.name,
       this.state.email,

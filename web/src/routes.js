@@ -5,7 +5,7 @@ import SignupPage from "./pages/signup.jsx";
 import NewCustomerPage from "./pages/customers/customer.jsx"
 import CustomersPage from "./pages/customers.jsx"
 import { getCurUser } from "./services/authsvc";
-import { fetchFn } from "./services/api";
+import { fetchFnJson, fetchFn } from "./services/api";
 
 export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
 
@@ -27,10 +27,17 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
 
   const routeOpts = {
     props: {
-      fetch: fetchFn(setLoading),
+      fetch: fetchFnJson(setLoading),
       loadComplete: setLoading,
     },
   }
+
+  const routeOptsCust = {
+    props: {
+      fetch: fetchFn(),
+    },
+  }
+
 
   const isAuthPageEntered = {
     props: {
@@ -70,12 +77,14 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
     {
       path: "/customers",
       component: CustomersPage,
-      beforeEnter: [authRedirect],
+      options: routeOpts,
+      beforeEnter: [],
     },
     {
       path: "/customers/new",
       component: NewCustomerPage,
-      beforeEnter: [authRedirect],
+      options: routeOptsCust,
+      beforeEnter: [],
     },
   ];
 };

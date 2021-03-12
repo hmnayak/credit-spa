@@ -1,7 +1,7 @@
 import { getUserToken } from "../services/authsvc";
 import { getToken } from "../services/authsvc";
 
-export function fetchFn(setLoading) {
+export function fetchFnJson(setLoading) {
   return async function(url, params) {
     try {
       setLoading(true);
@@ -11,7 +11,7 @@ export function fetchFn(setLoading) {
         "Authorization": token,
       });
   
-      return fetch(url, params).then(res => {
+      return fetch(url, params).then((res) => {
         if (res.status == 401) {
           window.location.href = '/login';
         }
@@ -24,43 +24,27 @@ export function fetchFn(setLoading) {
     } finally {
       setLoading(false);
     }
+  }
+}
+
+export function fetchFn() {
+  return async function(url, params) {
+    try {
+      const token = await getToken();
+      params.headers = Object.assign(params.headers || {}, {
+        "Authorization": token,
+      });
+  
+      return fetch(url, params).then(res => {
+        if (res.status == 401) {
+          window.location.href = '/login';
+        }
+        return res;
+      });
+    } catch(err) {
+      if (err == 'nouser') {
+        window.location.href = '/login';
+      }
+    }
   }  
-}
-
-// todo: move to separate file
-export async function createCustomer(id, name, email, phonenumber, gstin, showError , showSuccess) {
-  const data = {
-    customerid : id,
-    name : name,
-    email: email,
-    phone : phonenumber,
-    gstin: gstin
-  }
-
-  const params = {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization" :  getUserToken()
-    },
-    body: JSON.stringify(data),
-  };
-
-  let response =  await fetch("/api/customers", params).catch(err => showError(err) );
-  if(response.ok) {
-    showSuccess();
-  } else {
-    showError(response.status);
-  }
-}
-
-// todo: move to separate file
-export function getCustomers() {
-  const params = {
-    method: "GET",
-    headers: {
-      "Authorization" :  getUserToken()
-    },
-  };
-  return fetch("/api/customers", params);
 }
