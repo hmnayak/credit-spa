@@ -1,7 +1,6 @@
-import { getUserToken } from "../services/authsvc";
 import { getToken } from "../services/authsvc";
 
-export function fetchFnJson(setLoading) {
+export function fetchFn(setLoading, isNewCust) {
   return async function(url, params) {
     try {
       setLoading(true);
@@ -15,7 +14,12 @@ export function fetchFnJson(setLoading) {
         if (res.status == 401) {
           window.location.href = '/login';
         }
-        return res.json();
+        if(isNewCust){
+          return res;
+        }
+        else {
+          return res.json();
+        }
       });
     } catch(err) {
       if (err == 'nouser') {
@@ -25,26 +29,4 @@ export function fetchFnJson(setLoading) {
       setLoading(false);
     }
   }
-}
-
-export function fetchFn() {
-  return async function(url, params) {
-    try {
-      const token = await getToken();
-      params.headers = Object.assign(params.headers || {}, {
-        "Authorization": token,
-      });
-  
-      return fetch(url, params).then(res => {
-        if (res.status == 401) {
-          window.location.href = '/login';
-        }
-        return res;
-      });
-    } catch(err) {
-      if (err == 'nouser') {
-        window.location.href = '/login';
-      }
-    }
-  }  
 }

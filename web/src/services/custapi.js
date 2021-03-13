@@ -1,13 +1,11 @@
-
 export async function getCustomersApi(http) {
     const params = {
       method: "GET",
     };
     return await http("/api/customers", params);
 }
-  
 
-export async function createCustomer(http, id, name, email, phonenumber, gstin, showError , showSuccess) {
+export async function createCustomer(http, id, name, email, phonenumber, gstin) {
     const data = {
         customerid : id,
         name : name,
@@ -20,6 +18,5 @@ export async function createCustomer(http, id, name, email, phonenumber, gstin, 
         method: "PUT",
         body: JSON.stringify(data),
     };
-
     return await http("/api/customers", params);
 }

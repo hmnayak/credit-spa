@@ -38,30 +38,6 @@ export let getCurUser = () => {
   return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
 };
 
-// todo: deprecate
-let returnToken = null;
-
-// todo: deprecate
-export let getUserToken = async (pingApi) => {
-  returnToken = pingApi;
-  
-  const user = firebase.auth().currentUser;  // currentUser is returned null if the page refreshed and hence the onAuthStateChanged to be used
-  if(user) {
-    const userToken = await user.getIdToken();
-    pingApi(userToken);
-  }
-}
-
-// todo: deprecate
-firebase.auth().onAuthStateChanged(async (curuser) => {
-  if(curuser) {
-    const userToken = await curuser.getIdToken();
-    if(returnToken) {
-      returnToken(userToken);
-    }
-  }
-});
-
 export const signInWithGoogle = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithRedirect(provider);
