@@ -14,7 +14,7 @@ export default class login extends React.Component {
     };
   }
 
-  onHomeLinkClicked = () => {
+  onHomeLinkClicked() {
     this.props.authPageLoaded(false);
     this.props.updateHeader();
   };
@@ -71,18 +71,18 @@ export default class login extends React.Component {
     );
   }
 
-  showError = (error) => {
+  showError(error) {
     this.setState({
       errorMsg: error.message,
     });
   };
 
-  reNavigate = () => {
+  reNavigate() {
     this.onHomeLinkClicked();
     this.props.f7router.navigate("/");
   };
 
-  onLoginWithEmailClicked = (e) => {
+  onLoginWithEmailClicked(e) {
     e.preventDefault();
     loginWithEmail(
       this.state.email,

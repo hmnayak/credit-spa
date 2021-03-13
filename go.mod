@@ -12,6 +12,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	golang.org/x/oauth2 v0.0.0-20210126194326-f9ce19ea3013 // indirect
+	golang.org/x/tools/gopls v0.6.6 // indirect
 	google.golang.org/api v0.38.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )

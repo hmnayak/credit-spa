@@ -15,7 +15,7 @@ export default class signup extends React.Component {
     };
   }
 
-  onHomeLinkClicked = () => {
+  onHomeLinkClicked() {
     this.props.authPageLoaded(false);
     this.props.updateHeader();
   };
@@ -81,18 +81,18 @@ export default class signup extends React.Component {
     );
   }
 
-  showError = (error) => {
+  showError(error) {
     this.setState({
       errorMsg: error.message,
     });
   };
 
-  reNavigate = () => {
+  reNavigate() {
     this.onHomeLinkClicked();
     this.props.f7router.navigate("/");
   };
 
-  onSignupWithEmailClicked = (e) => {
+  onSignupWithEmailClicked(e) {
     e.preventDefault();
     signUpWithEmail(
       this.state.email,

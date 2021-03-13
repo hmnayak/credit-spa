@@ -77,13 +77,13 @@ export default class customer extends React.Component {
     );
   }
 
-  showError = (error) => {
+  showError(error) {
     this.setState({
       errorMsg: error.message,
     });
   };
 
-  showSuccess = () => {
+  showSuccess() {
     alert("Success");
     this.setState({
       id: "",
@@ -94,7 +94,7 @@ export default class customer extends React.Component {
     });
   };
 
-  onSubmitCustomerClicked = (e) => {
+  onSubmitCustomerClicked(e) {
     e.preventDefault();
     createCustomer(
       this.props.fetch,

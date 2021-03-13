@@ -10,18 +10,17 @@
     "dev": "parcel watch index.html"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/preset-env": "^7.12.10",
-    "@babel/preset-react": "^7.12.10",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "parcel-bundler": "^1.12.4"
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.0.0",
+    "@babel/preset-env": "7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "parcel-bundler": "1.12.3"
   },
   "dependencies": {
-    "@firebase/app": "^0.6.13",
-    "firebase": "^8.2.1",
-    "framework7": "^6.0.1",
-    "framework7-react": "^6.0.1",
+    "@firebase/app": "^0.6.0",
+    "firebase": "^8.0.0",
+    "framework7": "^6.0.0",
+    "framework7-react": "^6.0.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },
