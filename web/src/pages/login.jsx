@@ -24,13 +24,13 @@ export default class login extends React.Component {
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a href="/" onClick={this.onHomeLinkClicked} className="link">
+            <a href="/" onClick={this.onHomeLinkClicked.bind(this)} className="link">
               Credit
             </a>
           </div>
           <Block strong>
             <form
-              onSubmit={this.onLoginWithEmailClicked}
+              onSubmit={this.onLoginWithEmailClicked.bind(this)}
               action=""
               method="GET"
               className="form-ajax-submit"
@@ -87,8 +87,8 @@ export default class login extends React.Component {
     loginWithEmail(
       this.state.email,
       this.state.password,
-      this.showError,
-      this.reNavigate
+      this.showError.bind(this),
+      this.reNavigate.bind(this)
     );
   };
 }

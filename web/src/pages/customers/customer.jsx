@@ -20,7 +20,7 @@ export default class customer extends React.Component {
       <Page>
         <Block strong>
           <form
-            onSubmit={this.onSubmitCustomerClicked}
+            onSubmit={this.onSubmitCustomerClicked.bind(this)}
             action=""
             method="GET"
             className="form-ajax-submit"
@@ -103,8 +103,8 @@ export default class customer extends React.Component {
       this.state.email,
       this.state.phonenumber,
       this.state.gstin,
-      this.showError,
-      this.showSuccess
+      this.showError.bind(this),
+      this.showSuccess.bind(this)
     );
   };
 }

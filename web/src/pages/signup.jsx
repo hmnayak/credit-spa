@@ -25,13 +25,13 @@ export default class signup extends React.Component {
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a href="/" onClick={this.onHomeLinkClicked} className="link">
+            <a href="/" onClick={this.onHomeLinkClicked.bind(this)} className="link">
               Credit
             </a>
           </div>
           <Block>
             <form
-              onSubmit={this.onSignupWithEmailClicked}
+              onSubmit={this.onSignupWithEmailClicked.bind(this)}
               action=""
               method="GET"
               className="form-ajax-submit"
@@ -71,7 +71,7 @@ export default class signup extends React.Component {
               </Button>
             </form>
             <Block>
-              <Button fill onClick={signInWithGoogle}>
+              <Button fill onClick={signInWithGoogle.bind(this)}>
                 Sign in with Google
               </Button>
             </Block>
@@ -98,8 +98,8 @@ export default class signup extends React.Component {
       this.state.email,
       this.state.password,
       this.state.name,
-      this.showError,
-      this.reNavigate
+      this.showError.bind(this),
+      this.reNavigate.bind(this)
     );
   };
 }
