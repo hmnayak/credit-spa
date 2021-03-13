@@ -1,10 +1,9 @@
 import React from "react";
 import { Page, Block } from "framework7-react";
-import { getCurUser } from "../services/authsvc";
 
 export default (props) => {
   const userInfo = () => {
-    return <Block strong>You are logged in as {getCurUser()}</Block>;
+    return <Block strong>You are logged in as {props.username()}</Block>;
   };
 
   return (

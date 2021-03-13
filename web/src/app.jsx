@@ -12,7 +12,14 @@ export default class Container extends React.Component {
     this.state = {
       isLoading: false,
       isAuthScreen: false,
+      user: "",
     };
+  }
+
+  async componentDidMount() {
+    await getCurUser().then((user) => {
+      this.setState({ user: user });
+    });
   }
 
   setAuthScreenLoaded(isAuthScreen) {
@@ -30,7 +37,7 @@ export default class Container extends React.Component {
   }
 
   credentialsContent() {
-    if (getCurUser() === "Guest") {
+    if (this.state.user === "Guest") {
       return (
         <div className="right">
           <a href="/about/" className="link navlink">
@@ -61,6 +68,10 @@ export default class Container extends React.Component {
     }
   }
 
+  userInfo() {
+    return this.state.user;
+  }
+
   headerContent() {
     if (this.state.isAuthScreen) {
       return <div className="page no-navbar no-toolbar" />;
@@ -86,7 +97,8 @@ export default class Container extends React.Component {
         routes={routes(
           this.setLoading.bind(this),
           this.setAuthScreenLoaded.bind(this),
-          this.headerContent.bind(this)
+          this.headerContent.bind(this),
+          this.userInfo.bind(this)
         )}
       >
         <Navbar>{this.headerContent()}</Navbar>

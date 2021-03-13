@@ -4,9 +4,9 @@ import HomePage from "./pages/home.jsx";
 import SignupPage from "./pages/signup.jsx";
 import NewCustomerPage from "./pages/customers/customer.jsx"
 import CustomersPage from "./pages/customers.jsx"
-import { fetchFn as fetchFn } from "./services/api";
+import { fetchFn } from "./services/api";
 
-export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
+export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
 
   const isAuthPageEntered = {
     props: {
@@ -19,11 +19,21 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent) => {
     {
       path: "/",
       component: HomePage,
+      options: {
+        props : {
+          username: user,
+        }
+      },
       beforeEnter: [],
     },
     {
       path: "/home",
       component: HomePage,
+      options: {
+        props : {
+          username: user,
+        }
+      },
     },
     {
       path: "/login",

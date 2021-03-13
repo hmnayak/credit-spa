@@ -6,8 +6,7 @@ export default (props) => {
   const [item, setItem] = useState("");
 
   useEffect(() => {
-    pingApi(props.fetch)
-    .then(res => {
+    pingApi(props.fetch).then((res) => {
       setItem(res.status);
     });
   }, [item]);

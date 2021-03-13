@@ -26,16 +26,18 @@ const currentUser = new Promise((resolve, reject) => {
 
 export let getToken = async () => {
   return currentUser.then(async (user) => {
-    localStorage.setItem("user", user.displayName);
     return await user.getIdToken();
   }).catch((err) => {
     return Promise.reject(err);
   });
 };
 
-// todo: deprecate
-export let getCurUser = () => {
-  return !localStorage.getItem("user") ? "Guest" : localStorage.getItem("user");
+export let getCurUser = async () => {
+  return currentUser.then(async (user) => {
+    return user.displayName;
+  }).catch((err) => {
+    return "Guest";
+  });
 };
 
 export const signInWithGoogle = () => {
@@ -44,14 +46,12 @@ export const signInWithGoogle = () => {
 };
 
 export const logoutClicked = () => {
-  localStorage.setItem("user", "Guest");
   firebase
     .auth()
     .signOut()
     .catch((error) => {
       console.error("Error while trying out user", error);
     });
-  localStorage.removeItem("user");
   window.location.reload();
 };
 
