@@ -81,7 +81,7 @@ export default class customer extends React.Component {
     this.setState({
       errorMsg: error.message,
     });
-  };
+  }
 
   showSuccess() {
     alert("Success");
@@ -92,7 +92,7 @@ export default class customer extends React.Component {
       phonenumber: "",
       gstin: "",
     });
-  };
+  }
 
   onSubmitCustomerClicked(e) {
     e.preventDefault();
@@ -105,6 +105,12 @@ export default class customer extends React.Component {
       this.state.gstin,
       this.showError.bind(this),
       this.showSuccess.bind(this)
-    );
-  };
+    ).then((response) => {
+      if (response.ok) {
+        this.showSuccess();
+      } else {
+        this.showError(response.status);
+      }
+    });
+  }
 }

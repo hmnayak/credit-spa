@@ -21,11 +21,5 @@ export async function createCustomer(http, id, name, email, phonenumber, gstin, 
         body: JSON.stringify(data),
     };
 
-    http("/api/customers", params).then(response => {
-        if(response.ok) {
-            showSuccess();
-        } else {
-            showError(response.status);
-        }
-    });
+    return await http("/api/customers", params);
 }
