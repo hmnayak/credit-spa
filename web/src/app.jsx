@@ -111,6 +111,7 @@ export default class Container extends React.Component {
           browserHistoryRoot=""
           animate={false}
           browserHistoryInitialMatch={false}
+          browserHistoryStoreHistory={false}
         ></View>
       </App>
     );
