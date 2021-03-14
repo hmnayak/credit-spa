@@ -1,7 +1,7 @@
 import React from "react";
 import { Page, Block } from "framework7-react";
 
-export default (props) => {
+export const HomePage = (props) => {
   const userInfo = () => {
     return <Block strong>You are logged in as {props.username()}</Block>;
   };

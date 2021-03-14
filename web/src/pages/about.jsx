@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Page, Link } from "framework7-react";
 import { pingApi } from "../services/pingapi";
 
-export default (props) => {
+export const AboutPage = (props) => {
   const [item, setItem] = useState("");
 
   useEffect(() => {

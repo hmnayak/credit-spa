@@ -1,9 +1,9 @@
-import LoginPage from "./pages/login.jsx";
-import AboutPage from "./pages/about.jsx";
-import HomePage from "./pages/home.jsx";
-import SignupPage from "./pages/signup.jsx";
-import NewCustomerPage from "./pages/customers/customer.jsx"
-import CustomersPage from "./pages/customers.jsx"
+import { LoginPage } from "./pages/login.jsx";
+import { AboutPage } from "./pages/about.jsx";
+import { HomePage } from "./pages/home.jsx";
+import { SignupPage } from "./pages/signup.jsx";
+import { NewCustomersPage } from "./pages/customers/customer.jsx"
+import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
 export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
@@ -17,7 +17,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
 
   return [
     {
-      path: "/",
+      path: "",
       component: HomePage,
       options: {
         props : {
@@ -60,7 +60,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
     },
     {
       path: "/customers",
-      component: CustomersPage,
+      component: ListCustomersPage,
       options: {
         props : {
           fetch: fetchFn(setLoading),
@@ -71,7 +71,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
     },
     {
       path: "/customers/new",
-      component: NewCustomerPage,
+      component: NewCustomersPage,
       options: {
         props : {
           fetch: fetchFn(setLoading, true),

@@ -3,7 +3,7 @@ import React from "react";
 import { loginWithEmail } from "../services/authsvc";
 import "../../css/auth.css";
 
-export default class login extends React.Component {
+export class LoginPage extends React.Component {
   constructor(props) {
     super(props);
     props.authPageLoaded(true);
