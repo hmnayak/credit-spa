@@ -9,7 +9,7 @@ export default (props) => {
     pingApi(props.fetch).then((res) => {
       setItem(res.status);
     });
-  }, [item]);
+  }, []);
 
   return (
     <Page>
