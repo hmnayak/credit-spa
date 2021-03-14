@@ -18,14 +18,18 @@ export default class signup extends React.Component {
   onHomeLinkClicked() {
     this.props.authPageLoaded(false);
     this.props.updateHeader();
-  };
+  }
 
   render() {
     return (
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a href="/" onClick={this.onHomeLinkClicked.bind(this)} className="link">
+            <a
+              href="/"
+              onClick={this.onHomeLinkClicked.bind(this)}
+              className="link"
+            >
               Credit
             </a>
           </div>
@@ -85,21 +89,24 @@ export default class signup extends React.Component {
     this.setState({
       errorMsg: error.message,
     });
-  };
+  }
 
   reNavigate() {
     this.onHomeLinkClicked();
     this.props.f7router.navigate("/");
-  };
+  }
 
   onSignupWithEmailClicked(e) {
     e.preventDefault();
-    signUpWithEmail(
-      this.state.email,
-      this.state.password,
-      this.state.name,
-      this.showError.bind(this),
-      this.reNavigate.bind(this)
-    );
-  };
+    signUpWithEmail(this.state.email, this.state.password)
+      .then((result) => {
+        result.user.updateProfile({
+          displayName: this.state.name,
+        });
+        this.reNavigate();
+      })
+      .catch((error) => {
+        this.showError(error);
+      });
+  }
 }

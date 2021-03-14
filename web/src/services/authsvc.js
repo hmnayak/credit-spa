@@ -55,27 +55,15 @@ export const logoutClicked = () => {
   window.location.reload();
 };
 
-export const signUpWithEmail = (email, password, name, showError, reNavigate) => {
-  firebase
+export const signUpWithEmail = (email, password) => {
+  return firebase
     .auth()
-    .createUserWithEmailAndPassword(email, password)
-    .then((result) => {
-      result.user.updateProfile({
-        displayName: name,
-      });
-      reNavigate();
-    })
-    .catch((error) => {
-      showError(error);
-    });
+    .createUserWithEmailAndPassword(email, password);
 };
 
-export const loginWithEmail = async (email, password, showError, reNavigate) => {
-  try {
-    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    await firebase.auth().signInWithEmailAndPassword(email, password)  
-    reNavigate();  
-  } catch(err) {
-    showError(err);
-  }
+export const loginWithEmail = (email, password) => {
+  return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+      return firebase.auth().signInWithEmailAndPassword(email, password);
+    })
 };

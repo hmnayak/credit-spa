@@ -17,14 +17,18 @@ export default class login extends React.Component {
   onHomeLinkClicked() {
     this.props.authPageLoaded(false);
     this.props.updateHeader();
-  };
+  }
 
   render() {
     return (
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a href="/" onClick={this.onHomeLinkClicked.bind(this)} className="link">
+            <a
+              href="/"
+              onClick={this.onHomeLinkClicked.bind(this)}
+              className="link"
+            >
               Credit
             </a>
           </div>
@@ -75,20 +79,21 @@ export default class login extends React.Component {
     this.setState({
       errorMsg: error.message,
     });
-  };
+  }
 
   reNavigate() {
     this.onHomeLinkClicked();
     this.props.f7router.navigate("/");
-  };
+  }
 
   onLoginWithEmailClicked(e) {
     e.preventDefault();
-    loginWithEmail(
-      this.state.email,
-      this.state.password,
-      this.showError.bind(this),
-      this.reNavigate.bind(this)
-    );
-  };
+    loginWithEmail(this.state.email, this.state.password)
+      .then(() => {
+        this.reNavigate();
+      })
+      .catch((error) => {
+        this.showError(error);
+      });
+  }
 }
