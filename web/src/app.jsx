@@ -3,12 +3,14 @@ import { App, View, Navbar } from "framework7-react";
 import routes from "./routes";
 import { logoutClicked, getCurUser } from "./services/authsvc";
 import "../css/navbar.css";
+import ErrorBoundary from "./pages/error";
 
 const rootPath = window.location.pathname;
 
 export default class Container extends React.Component {
   constructor(props) {
     super(props);
+    
     this.state = {
       isLoading: false,
       isAuthScreen: false,
@@ -90,30 +92,32 @@ export default class Container extends React.Component {
 
   render() {
     return (
-      <App
-        name="Credit"
-        theme="auto"
-        id="treeples.credit"
-        routes={routes(
-          this.setLoading.bind(this),
-          this.setAuthScreenLoaded.bind(this),
-          this.headerContent.bind(this),
-          this.userInfo.bind(this)
-        )}
-      >
-        <Navbar>{this.headerContent()}</Navbar>
-        <View
-          main
-          url={rootPath}
-          browserHistory
-          browserHistorySeparator=""
-          pushState
-          browserHistoryRoot=""
-          animate={false}
-          browserHistoryInitialMatch={false}
-          browserHistoryStoreHistory={false}
-        ></View>
-      </App>
+      <ErrorBoundary>
+        <App
+          name="Credit"
+          theme="auto"
+          id="treeples.credit"
+          routes={routes(
+            this.setLoading.bind(this),
+            this.setAuthScreenLoaded.bind(this),
+            this.headerContent.bind(this),
+            this.userInfo.bind(this)
+            )}
+        >
+          <Navbar>{this.headerContent()}</Navbar>
+          <View
+            main
+            url={rootPath}
+            browserHistory
+            browserHistorySeparator=""
+            pushState
+            browserHistoryRoot=""
+            animate={false}
+            browserHistoryInitialMatch={false}
+            browserHistoryStoreHistory={false}
+          ></View>
+        </App>
+      </ErrorBoundary>
     );
   }
 }
