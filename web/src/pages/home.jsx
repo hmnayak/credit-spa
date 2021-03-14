@@ -15,7 +15,7 @@ export default (props) => {
               customer billing
               <p>&nbsp;</p>
               <div className="card-footer">
-                <a href="/customers" className="link">
+                <a href="/customers/" className="link">
                   Customers!
                 </a>
               </div>

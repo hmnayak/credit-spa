@@ -17,7 +17,7 @@ export default (props) => {
         <div className="list">
           <ul>
             <li>
-              <a className="button" href="/customers/new">
+              <a className="button" href="/customers/new/">
                 Add new customer
               </a>
             </li>
