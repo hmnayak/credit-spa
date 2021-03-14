@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Page, Block } from "framework7-react";
 import { getCustomersApi } from "../services/custapi";
 
-export default (props) => {
+export const ListCustomersPage = (props) => {
   const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default (props) => {
         <div className="list">
           <ul>
             <li>
-              <a className="button" href="/customers/new">
+              <a className="button" href="/customers/new/">
                 Add new customer
               </a>
             </li>

@@ -3,7 +3,7 @@ import React from "react";
 import { signInWithGoogle, signUpWithEmail } from "../services/authsvc";
 import "../../css/auth.css";
 
-export default class signup extends React.Component {
+export class SignupPage extends React.Component {
   constructor(props) {
     super(props);
     props.authPageLoaded(true);

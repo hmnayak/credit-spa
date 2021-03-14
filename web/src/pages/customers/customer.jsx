@@ -2,7 +2,8 @@ import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
 import { createCustomer } from "../../services/custapi";
 
-export default class customer extends React.Component {
+export class NewCustomersPage extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {

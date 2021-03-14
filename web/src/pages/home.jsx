@@ -1,7 +1,7 @@
 import React from "react";
 import { Page, Block } from "framework7-react";
 
-export default (props) => {
+export const HomePage = (props) => {
   const userInfo = () => {
     return <Block strong>You are logged in as {props.username()}</Block>;
   };
@@ -15,7 +15,7 @@ export default (props) => {
               customer billing
               <p>&nbsp;</p>
               <div className="card-footer">
-                <a href="/customers" className="link">
+                <a href="/customers/" className="link">
                   Customers!
                 </a>
               </div>
