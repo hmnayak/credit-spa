@@ -4,7 +4,7 @@ import routes from "./routes";
 import { logoutClicked, getCurUser } from "./services/authsvc";
 import "../css/navbar.css";
 
-const rootPath = window.location.pathname.replace(/\/+$/, "");
+const rootPath = window.location.pathname;
 
 export default class Container extends React.Component {
   constructor(props) {
