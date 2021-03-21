@@ -1,9 +1,9 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
 import { createCustomer } from "../../services/custapi";
+import { NotificationMsg } from "../../components/notification";
 
 export class NewCustomersPage extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -13,6 +13,9 @@ export class NewCustomersPage extends React.Component {
       phonenumber: "",
       gstin: "",
       errorMsg: "",
+      success: {
+        message: "",
+      },
     };
   }
 
@@ -74,8 +77,15 @@ export class NewCustomersPage extends React.Component {
             </Button>
           </form>
         </Block>
+        {this.renderNotification()}
       </Page>
     );
+  }
+
+  renderNotification() {
+    if (this.state.success.message) {
+      return <NotificationMsg {...this.state.success} />;
+    }
   }
 
   showError(error) {
@@ -85,13 +95,15 @@ export class NewCustomersPage extends React.Component {
   }
 
   showSuccess() {
-    alert("Success");
     this.setState({
       id: "",
       name: "",
       email: "",
       phonenumber: "",
       gstin: "",
+      success: {
+        message: "Success Story!",
+      },
     });
   }
 
