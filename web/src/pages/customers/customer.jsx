@@ -12,7 +12,6 @@ export class NewCustomersPage extends React.Component {
       phonenumber: "",
       gstin: "",
       errorMsg: "",
-      successMsg: "",
     };
   }
 
@@ -52,7 +51,7 @@ export class NewCustomersPage extends React.Component {
                 type="tel"
                 placeholder="Phone Number"
                 value={this.state.phonenumber}
-                onInput={(e) => { 
+                onInput={(e) => {
                   this.setState({ phonenumber: e.target.value });
                 }}
                 required
@@ -74,7 +73,6 @@ export class NewCustomersPage extends React.Component {
             </Button>
           </form>
         </Block>
-        {/* {this.props.showNotification(this.state.successMsg)} */}
       </Page>
     );
   }
@@ -94,7 +92,6 @@ export class NewCustomersPage extends React.Component {
       email: "",
       phonenumber: "",
       gstin: "",
-      successMsg: "",
     });
   }
 
