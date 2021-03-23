@@ -13,9 +13,7 @@ export class NewCustomersPage extends React.Component {
       phonenumber: "",
       gstin: "",
       errorMsg: "",
-      success: {
-        message: "",
-      },
+      successMsg: "",
     };
   }
 
@@ -77,15 +75,9 @@ export class NewCustomersPage extends React.Component {
             </Button>
           </form>
         </Block>
-        {this.renderNotification()}
+        {this.props.showNotification(this.state.successMsg)}
       </Page>
     );
-  }
-
-  renderNotification() {
-    if (this.state.success.message) {
-      return <NotificationMsg {...this.state.success} />;
-    }
   }
 
   showError(error) {
@@ -95,15 +87,14 @@ export class NewCustomersPage extends React.Component {
   }
 
   showSuccess() {
+    let custName = this.state.name;
     this.setState({
       id: "",
       name: "",
       email: "",
       phonenumber: "",
       gstin: "",
-      success: {
-        message: "Success Story!",
-      },
+      successMsg: custName + "- updated successful!",
     });
   }
 

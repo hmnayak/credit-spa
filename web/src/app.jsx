@@ -4,13 +4,14 @@ import routes from "./routes";
 import { logoutClicked, getCurUser } from "./services/authsvc";
 import "../css/navbar.css";
 import ErrorBoundary from "./pages/error";
+import { NotificationMsg } from "./components/notification";
 
 const rootPath = window.location.pathname;
 
 export default class Container extends React.Component {
   constructor(props) {
     super(props);
-    
+
     this.state = {
       isLoading: false,
       isAuthScreen: false,
@@ -90,6 +91,12 @@ export default class Container extends React.Component {
     }
   }
 
+  showNotification(message) {
+    if (message) {
+      return <NotificationMsg successMsg={message} />;
+    }
+  }
+
   render() {
     return (
       <ErrorBoundary>
@@ -101,8 +108,9 @@ export default class Container extends React.Component {
             this.setLoading.bind(this),
             this.setAuthScreenLoaded.bind(this),
             this.headerContent.bind(this),
-            this.userInfo.bind(this)
-            )}
+            this.userInfo.bind(this),
+            this.showNotification.bind(this)
+          )}
         >
           <Navbar>{this.headerContent()}</Navbar>
           <View

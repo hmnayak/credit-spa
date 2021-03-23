@@ -6,7 +6,7 @@ import { NewCustomersPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
-export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
+export default (setLoading, setAuthScreenLoaded, setHeaderContent, user, showNotification) => {
 
   const isAuthPageEntered = {
     props: {
@@ -76,6 +76,7 @@ export default (setLoading, setAuthScreenLoaded, setHeaderContent, user) => {
         props : {
           fetch: fetchFn(setLoading, true),
           loadComplete: setLoading,
+          showNotification: showNotification
         }
       },
       beforeEnter: [],
