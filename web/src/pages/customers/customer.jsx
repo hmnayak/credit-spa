@@ -1,7 +1,6 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
 import { createCustomer } from "../../services/custapi";
-import { NotificationMsg } from "../../components/notification";
 
 export class NewCustomersPage extends React.Component {
   constructor(props) {
@@ -53,7 +52,7 @@ export class NewCustomersPage extends React.Component {
                 type="tel"
                 placeholder="Phone Number"
                 value={this.state.phonenumber}
-                onInput={(e) => {
+                onInput={(e) => { 
                   this.setState({ phonenumber: e.target.value });
                 }}
                 required
@@ -75,7 +74,7 @@ export class NewCustomersPage extends React.Component {
             </Button>
           </form>
         </Block>
-        {this.props.showNotification(this.state.successMsg)}
+        {/* {this.props.showNotification(this.state.successMsg)} */}
       </Page>
     );
   }
@@ -88,13 +87,14 @@ export class NewCustomersPage extends React.Component {
 
   showSuccess() {
     let custName = this.state.name;
+    this.props.showNotification(custName + "- updated successful!");
     this.setState({
       id: "",
       name: "",
       email: "",
       phonenumber: "",
       gstin: "",
-      successMsg: custName + "- updated successful!",
+      successMsg: "",
     });
   }
 

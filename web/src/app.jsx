@@ -16,6 +16,7 @@ export default class Container extends React.Component {
       isLoading: false,
       isAuthScreen: false,
       user: "",
+      message: "",
     };
   }
 
@@ -91,9 +92,15 @@ export default class Container extends React.Component {
     }
   }
 
-  showNotification(message) {
-    if (message) {
-      return <NotificationMsg successMsg={message} />;
+  setNotificationMsg(message) {
+    this.setState({
+      message: message,
+    });
+  }
+
+  ShowNotification() {
+    if (this.state.message) {
+      return <NotificationMsg successMsg={this.state.message} />;
     }
   }
 
@@ -109,7 +116,7 @@ export default class Container extends React.Component {
             this.setAuthScreenLoaded.bind(this),
             this.headerContent.bind(this),
             this.userInfo.bind(this),
-            this.showNotification.bind(this)
+            this.setNotificationMsg.bind(this)
           )}
         >
           <Navbar>{this.headerContent()}</Navbar>
@@ -123,7 +130,9 @@ export default class Container extends React.Component {
             animate={false}
             browserHistoryInitialMatch={false}
             browserHistoryStoreHistory={false}
-          ></View>
+          >
+            {this.ShowNotification()}
+          </View>
         </App>
       </ErrorBoundary>
     );
