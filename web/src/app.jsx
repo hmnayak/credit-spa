@@ -98,7 +98,7 @@ export default class Container extends React.Component {
     });
   }
 
-  ShowNotification() {
+  showNotification() {
     if (this.state.message) {
       return <NotificationMsg successMsg={this.state.message} />;
     }
@@ -131,7 +131,7 @@ export default class Container extends React.Component {
             browserHistoryInitialMatch={false}
             browserHistoryStoreHistory={false}
           >
-            {this.ShowNotification()}
+            {this.showNotification()}
           </View>
         </App>
       </ErrorBoundary>
