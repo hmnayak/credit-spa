@@ -6,11 +6,10 @@ import { NewCustomersPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
-export default (setLoading, setAuthScreenLoaded, setHeaderContent, user, showNotification) => {
+export default (setLoading, setHeaderContent, user, showNotification) => {
 
   const isAuthPageEntered = {
     props: {
-      authPageLoaded: setAuthScreenLoaded,
       updateHeader : setHeaderContent
     },
   }

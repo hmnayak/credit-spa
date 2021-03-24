@@ -15,7 +15,6 @@ export class LoginPage extends React.Component {
   }
 
   onHomeLinkClicked() {
-    this.props.authPageLoaded(false);
     this.props.updateHeader();
   }
 

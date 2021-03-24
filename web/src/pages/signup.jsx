@@ -6,7 +6,6 @@ import "../../css/auth.css";
 export class SignupPage extends React.Component {
   constructor(props) {
     super(props);
-    props.authPageLoaded(true);
     this.state = {
       email: "",
       password: "",
@@ -16,7 +15,6 @@ export class SignupPage extends React.Component {
   }
 
   onHomeLinkClicked() {
-    this.props.authPageLoaded(false);
     this.props.updateHeader();
   }
 

@@ -14,7 +14,6 @@ export default class Container extends React.Component {
 
     this.state = {
       isLoading: false,
-      isAuthScreen: false,
       user: "",
       message: "",
     };
@@ -24,10 +23,6 @@ export default class Container extends React.Component {
     await getCurUser().then((user) => {
       this.setState({ user: user });
     });
-  }
-
-  setAuthScreenLoaded(isAuthScreen) {
-    this.setState({ isAuthScreen: isAuthScreen });
   }
 
   setLoading(isLoading) {
@@ -77,7 +72,11 @@ export default class Container extends React.Component {
   }
 
   headerContent() {
-    if (this.state.isAuthScreen) {
+    console.log("current path " + window.location.pathname);
+    if (
+      window.location.pathname == "/signup/" ||
+      window.location.pathname == "/login/"
+    ) {
       return <div className="page no-navbar no-toolbar" />;
     } else {
       return (
@@ -113,7 +112,6 @@ export default class Container extends React.Component {
           id="treeples.credit"
           routes={routes(
             this.setLoading.bind(this),
-            this.setAuthScreenLoaded.bind(this),
             this.headerContent.bind(this),
             this.userInfo.bind(this),
             this.setNotificationMsg.bind(this)
