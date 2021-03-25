@@ -6,7 +6,6 @@ import "../../css/auth.css";
 export class LoginPage extends React.Component {
   constructor(props) {
     super(props);
-    props.authPageLoaded(true);
     this.state = {
       email: "",
       password: "",

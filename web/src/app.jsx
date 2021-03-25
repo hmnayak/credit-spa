@@ -72,23 +72,15 @@ export default class Container extends React.Component {
   }
 
   headerContent() {
-    console.log("current path " + window.location.pathname);
-    if (
-      window.location.pathname == "/signup/" ||
-      window.location.pathname == "/login/"
-    ) {
-      return <div className="page no-navbar no-toolbar" />;
-    } else {
-      return (
-        <div className="navbar-inner">
-          <a href="/" className="link">
-            Credit
-          </a>
-          {this.loading()}
-          {this.credentialsContent()}
-        </div>
-      );
-    }
+    return (
+      <div className="navbar-inner">
+        <a href="/" className="link">
+          Credit
+        </a>
+        {this.loading()}
+        {this.credentialsContent()}
+      </div>
+    );
   }
 
   setNotificationMsg(message) {
