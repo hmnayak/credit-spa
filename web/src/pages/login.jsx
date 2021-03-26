@@ -22,11 +22,7 @@ export class LoginPage extends React.Component {
       <div className="page no-toolbar no-swipeback login-screen-page">
         <div className="page-content login-screen-content auth-position">
           <div className="login-screen-title">
-            <a
-              href="/"
-              onClick={this.onHomeLinkClicked.bind(this)}
-              className="link"
-            >
+            <a href="/" className="link">
               Credit
             </a>
           </div>
@@ -80,7 +76,6 @@ export class LoginPage extends React.Component {
   }
 
   reNavigate() {
-    this.onHomeLinkClicked();
     this.props.f7router.navigate("/");
   }
 

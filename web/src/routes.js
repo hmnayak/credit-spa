@@ -6,13 +6,7 @@ import { NewCustomersPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
-export default (setLoading, setHeaderContent, user, showNotification) => {
-
-  const isAuthPageEntered = {
-    props: {
-      updateHeader : setHeaderContent
-    },
-  }
+export default (setLoading, user, showNotification) => {
 
   return [
     {
@@ -37,13 +31,11 @@ export default (setLoading, setHeaderContent, user, showNotification) => {
     {
       path: "/login",
       component: LoginPage,
-      options: isAuthPageEntered,
       beforeEnter: [],
     },
     {
       path: "/signup",
       component: SignupPage,
-      options: isAuthPageEntered,
       beforeEnter: [],
     },
     {

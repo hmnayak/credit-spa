@@ -104,7 +104,6 @@ export default class Container extends React.Component {
           id="treeples.credit"
           routes={routes(
             this.setLoading.bind(this),
-            this.headerContent.bind(this),
             this.userInfo.bind(this),
             this.setNotificationMsg.bind(this)
           )}
