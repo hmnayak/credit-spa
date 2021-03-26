@@ -6,7 +6,7 @@ import { NewCustomersPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
-export default (setLoading, user, showNotification) => {
+export default (setLoading, showNotification) => {
 
   return [
     {
@@ -14,7 +14,6 @@ export default (setLoading, user, showNotification) => {
       component: HomePage,
       options: {
         props : {
-          username: user,
         }
       },
       beforeEnter: [],
@@ -24,7 +23,6 @@ export default (setLoading, user, showNotification) => {
       component: HomePage,
       options: {
         props : {
-          username: user,
         }
       },
     },

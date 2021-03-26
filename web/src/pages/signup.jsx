@@ -82,7 +82,7 @@ export class SignupPage extends React.Component {
   }
 
   reNavigate() {
-    this.props.f7router.navigate("/");
+    window.location.href = '/';
   }
 
   onSignupWithEmailClicked(e) {

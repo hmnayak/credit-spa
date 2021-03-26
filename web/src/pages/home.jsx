@@ -2,9 +2,6 @@ import React from "react";
 import { Page, Block } from "framework7-react";
 
 export const HomePage = (props) => {
-  const userInfo = () => {
-    return <Block strong>You are logged in as {props.username()}</Block>;
-  };
 
   return (
     <Page>
@@ -12,18 +9,15 @@ export const HomePage = (props) => {
         <div className="row">
           <div className="card">
             <div className="card-content card-content-padding">
-              customer billing
-              <p>&nbsp;</p>
-              <div className="card-footer">
-                <a href="/customers/" className="link">
-                  Customers!
-                </a>
+              <div>
+                <a href="/about/" className="link">About</a>
+                <br/>
+                <a href="/customers/" className="link">Customers</a>
               </div>
             </div>
           </div>
         </div>
       </Block>
-      {userInfo()}
     </Page>
   );
 };

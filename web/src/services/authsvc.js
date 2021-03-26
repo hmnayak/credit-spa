@@ -14,17 +14,24 @@ if (firebase.apps.length == 0) {
   firebase.initializeApp(config);
 }
 
-const currentUser = new Promise((resolve, reject) => {
-  firebase.auth().onAuthStateChanged(user => {
-    if (user) {
-      resolve(user);
-    } else {
-      reject('nouser');
-    }
-  });
-});
+const userChangeCallbacks = [];
 
-export let getToken = async () => {
+export const onUserChange = (fn) => {
+  userChangeCallbacks.push(fn);
+}
+
+const currentUser = new Promise((resolve, reject) => {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        resolve(user);
+      } else {
+        reject('nouser');
+      }
+      userChangeCallbacks.forEach(fn => fn());
+    });
+  });
+
+export const getToken = async () => {
   return currentUser.then(async (user) => {
     return await user.getIdToken();
   }).catch((err) => {
@@ -32,27 +39,12 @@ export let getToken = async () => {
   });
 };
 
-export let getCurUser = async () => {
-  return currentUser.then(async (user) => {
+export const getUsername = () => {
+  return currentUser.then(user => {
     return user.displayName;
-  }).catch((err) => {
-    return "Guest";
+  }).catch(() => {
+    return null;
   });
-};
-
-export const signInWithGoogle = () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithRedirect(provider);
-};
-
-export const logoutClicked = () => {
-  firebase
-    .auth()
-    .signOut()
-    .catch((error) => {
-      console.error("Error while trying out user", error);
-    });
-  window.location.reload();
 };
 
 export const signUpWithEmail = (email, password) => {
@@ -61,9 +53,24 @@ export const signUpWithEmail = (email, password) => {
     .createUserWithEmailAndPassword(email, password);
 };
 
+export const signInWithGoogle = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  return firebase.auth().signInWithRedirect(provider);
+};
+
 export const loginWithEmail = (email, password) => {
-  return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  return firebase.auth()
+    .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .then(() => {
       return firebase.auth().signInWithEmailAndPassword(email, password);
-    })
+    });
+}
+
+export const logoutClicked = () => {
+  return firebase
+    .auth()
+    .signOut()
+    .catch((error) => {
+      console.error("Error while trying out user", error);
+    });
 };

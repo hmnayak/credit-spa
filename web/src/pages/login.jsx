@@ -76,7 +76,7 @@ export class LoginPage extends React.Component {
   }
 
   reNavigate() {
-    this.props.f7router.navigate("/");
+    window.location.href = '/';
   }
 
   onLoginWithEmailClicked(e) {

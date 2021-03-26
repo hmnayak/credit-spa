@@ -1,10 +1,10 @@
 import React from "react";
 import { App, View, Navbar } from "framework7-react";
 import routes from "./routes";
-import { logoutClicked, getCurUser } from "./services/authsvc";
-import "../css/navbar.css";
+import { logoutClicked, getUsername, onUserChange } from "./services/authsvc";
 import ErrorBoundary from "./pages/error";
 import { NotificationMsg } from "./components/notification";
+import "../css/navbar.css";
 
 const rootPath = window.location.pathname;
 
@@ -19,77 +19,55 @@ export default class Container extends React.Component {
     };
   }
 
-  async componentDidMount() {
-    await getCurUser().then((user) => {
-      this.setState({ user: user });
-    });
+  componentDidMount() {
+    onUserChange(this.triggerUserChange.bind(this));
+    this.triggerUserChange();
   }
 
-  setLoading(isLoading) {
+  triggerLoading(isLoading) {
     this.setState({ isLoading: isLoading });
   }
 
-  loading() {
+  triggerNotification(message) {
+    this.setState({ message: message });
+  }
+
+  triggerUserChange() {
+    getUsername().then((username) => {
+      this.setState({ username: username });
+    });
+  }
+
+  onLogoutClick() {
+    logoutClicked().then(() => {
+      window.location.reload();
+    })
+  }
+
+  renderLoading() {
     if (this.state.isLoading) {
       return <div className="center">Loading...</div>;
     }
   }
 
-  credentialsContent() {
-    if (this.state.user === "Guest") {
+  renderSession() {
+    if (this.state.username) {
       return (
-        <div className="right">
-          <a href="/about/" className="link navlink">
-            About
-          </a>
-          <a href="/login/" className="link navlink">
-            Login
-          </a>
-          <a href="/signup/" className="link navlink">
-            Signup
-          </a>
-        </div>
-      );
-    } else {
-      return (
-        <div className="right">
-          <a href="/about/" className="link navlink">
-            About
-          </a>
-          <a href="/signup/" className="link navlink">
-            Signup
-          </a>
-          <a href="/" className="link navlink" onClick={logoutClicked}>
-            Logout
-          </a>
-        </div>
+        <> 
+          <span>{this.state.username}</span>
+          <a href="/" className="link navlink" onClick={this.onLogoutClick.bind(this)}>Logout</a>
+        </> 
       );
     }
-  }
-
-  userInfo() {
-    return this.state.user;
-  }
-
-  headerContent() {
     return (
-      <div className="navbar-inner">
-        <a href="/" className="link">
-          Credit
-        </a>
-        {this.loading()}
-        {this.credentialsContent()}
-      </div>
+      <> 
+        <a href="/login/" className="link navlink">Login</a>
+        <a href="/signup/" className="link navlink">Signup</a>
+      </>
     );
   }
 
-  setNotificationMsg(message) {
-    this.setState({
-      message: message,
-    });
-  }
-
-  showNotification() {
+  renderNotification() {
     if (this.state.message) {
       return <NotificationMsg successMsg={this.state.message} />;
     }
@@ -103,12 +81,21 @@ export default class Container extends React.Component {
           theme="auto"
           id="treeples.credit"
           routes={routes(
-            this.setLoading.bind(this),
-            this.userInfo.bind(this),
-            this.setNotificationMsg.bind(this)
+            this.triggerLoading.bind(this),
+            this.triggerNotification.bind(this)
           )}
         >
-          <Navbar>{this.headerContent()}</Navbar>
+          <Navbar>
+            <div className="navbar-inner">
+              <a href="/" className="link">
+                Credit
+              </a>
+              {this.renderLoading()}
+              <div className="right">
+                {this.renderSession()}
+              </div>
+            </div>
+          </Navbar>
           <View
             main
             url={rootPath}
@@ -120,7 +107,7 @@ export default class Container extends React.Component {
             browserHistoryInitialMatch={false}
             browserHistoryStoreHistory={false}
           >
-            {this.showNotification()}
+            {this.renderNotification()}
           </View>
         </App>
       </ErrorBoundary>
