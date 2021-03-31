@@ -75,3 +75,28 @@ GET /customers
 ### Notes
 - Create left sidepane with menu option Customers pointing to /customers
 - Provide link to open /customers/<customer_id> for each entry
+
+# Paginate customers
+
+As a businessman
+
+I want to list all my customers by pages
+
+So that I can see small list of customers at a time 
+
+### API
+GET /api/customers?page=3
+
+    [{
+        name
+        email
+        phone_no
+        gstin
+    }]
+
+### UI
+GET /customers?page=3
+
+### Notes
+- Make page size configurable
+- Show page no, prev, next links on each page
