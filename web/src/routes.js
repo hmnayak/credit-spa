@@ -2,7 +2,7 @@ import { LoginPage } from "./pages/login.jsx";
 import { AboutPage } from "./pages/about.jsx";
 import { HomePage } from "./pages/home.jsx";
 import { SignupPage } from "./pages/signup.jsx";
-import { NewCustomersPage } from "./pages/customers/customer.jsx"
+import { CustomerPage as CustomerPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
 import { fetchFn } from "./services/api";
 
@@ -60,10 +60,22 @@ export default (setLoading, showNotification) => {
     },
     {
       path: "/customers/new",
-      component: NewCustomersPage,
+      component: CustomerPage,
       options: {
         props : {
           fetch: fetchFn(setLoading, true),
+          loadComplete: setLoading,
+          showNotification: showNotification
+        }
+      },
+      beforeEnter: [],
+    },
+    {
+      path: "/customers/:customerId",
+      component: CustomerPage,
+      options: {
+        props : {
+          fetch: fetchFn(setLoading),
           loadComplete: setLoading,
           showNotification: showNotification
         }

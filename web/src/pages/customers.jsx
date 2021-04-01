@@ -29,7 +29,7 @@ export const ListCustomersPage = (props) => {
                       <a
                         key={customer.customerid}
                         className="list-button"
-                        href="/customer/"
+                        href={"/customers/" + customer.customerid}
                       >
                         {customer.name}
                       </a>

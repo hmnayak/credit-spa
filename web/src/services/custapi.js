@@ -5,6 +5,13 @@ export async function getCustomersApi(http) {
     return await http("/api/customers", params);
 }
 
+export async function getCustomerApi(http, id) {
+    const params = {
+      method: "GET",
+    };
+    return await http("/api/customers/" + id, params);
+}
+
 export async function createCustomer(http, id, name, email, phonenumber, gstin) {
     const data = {
         customerid : id,

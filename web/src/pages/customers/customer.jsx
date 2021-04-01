@@ -1,8 +1,9 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
 import { createCustomer } from "../../services/custapi";
+import { getCustomerApi } from "../../services/custapi";
 
-export class NewCustomersPage extends React.Component {
+export class CustomerPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -13,6 +14,28 @@ export class NewCustomersPage extends React.Component {
       gstin: "",
       errorMsg: "",
     };
+  }
+
+  componentDidMount() {
+    let custId = this.props.f7route.params.customerId;
+    if (custId != undefined) {
+      getCustomerApi(this.props.fetch, custId).then((res) => {
+        this.setState({
+          name: res.name,
+          email: res.email,
+          phonenumber: res.phone,
+          gstin: res.gstin,
+        });
+      });
+    }
+  }
+
+  submitButton() {
+    if (this.props.f7route.params.customerId != undefined) {
+      return "Edit Customer";
+    } else {
+      return "Create Customer";
+    }
   }
 
   render() {
@@ -69,7 +92,7 @@ export class NewCustomersPage extends React.Component {
               <p style={{ color: "red" }}>{this.state.errorMsg}</p>
             </List>
             <Button fill type="submit">
-              Create Customer
+              {this.submitButton()}
             </Button>
           </form>
         </Block>
