@@ -112,9 +112,8 @@ export class CustomerPage extends React.Component {
   showSuccess(status) {
     if (this.props.f7route.params.customerId != undefined) {
       this.props.f7router.navigate("/customers");
-    } else {
-      this.props.showNotification(this.state.name);
     }
+    this.props.showNotification(this.state.name);
     this.setState({
       id: "",
       name: "",
