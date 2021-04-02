@@ -39,7 +39,7 @@ export class NotificationMsg extends React.Component {
       return (
         <div className="notification-wrapper">
           <div className="notification-item">
-            <p> {this.state.message}</p>
+            <p> Successfully Updated</p>
           </div>
         </div>
       );
