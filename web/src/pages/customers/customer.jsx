@@ -110,9 +110,11 @@ export class CustomerPage extends React.Component {
   }
 
   showSuccess(status) {
-    this.props.showNotification(
-      this.state.name + " - " + status + " successful!"
-    );
+    if (this.props.f7route.params.customerId != undefined) {
+      window.location.href = "/customers";
+    } else {
+      this.props.showNotification(this.state.name);
+    }
     this.setState({
       id: "",
       name: "",
