@@ -41,7 +41,7 @@ export default class Container extends React.Component {
   onLogoutClick() {
     logoutClicked().then(() => {
       window.location.reload();
-    })
+    });
   }
 
   renderLoading() {
@@ -53,16 +53,26 @@ export default class Container extends React.Component {
   renderSession() {
     if (this.state.username) {
       return (
-        <> 
+        <>
           <span>{this.state.username}</span>
-          <a href="/" className="link navlink" onClick={this.onLogoutClick.bind(this)}>Logout</a>
-        </> 
+          <a
+            href="/"
+            className="link navlink"
+            onClick={this.onLogoutClick.bind(this)}
+          >
+            Logout
+          </a>
+        </>
       );
     }
     return (
-      <> 
-        <a href="/login/" className="link navlink">Login</a>
-        <a href="/signup/" className="link navlink">Signup</a>
+      <>
+        <a href="/login/" className="link navlink">
+          Login
+        </a>
+        <a href="/signup/" className="link navlink">
+          Signup
+        </a>
       </>
     );
   }
@@ -91,9 +101,7 @@ export default class Container extends React.Component {
                 Credit
               </a>
               {this.renderLoading()}
-              <div className="right">
-                {this.renderSession()}
-              </div>
+              <div className="right">{this.renderSession()}</div>
             </div>
           </Navbar>
           <View

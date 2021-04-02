@@ -8,6 +8,14 @@ import { fetchFn } from "./services/api";
 
 export default (setLoading, showNotification) => {
 
+  const routeOpts  = {
+    props : {
+      fetch: fetchFn(setLoading),
+      loadComplete: setLoading,
+      showNotification: showNotification
+    }
+  }
+
   return [
     {
       path: "",
@@ -50,36 +58,19 @@ export default (setLoading, showNotification) => {
     {
       path: "/customers",
       component: ListCustomersPage,
-      options: {
-        props : {
-          fetch: fetchFn(setLoading),
-          loadComplete: setLoading,
-        }
-      },
+      options: routeOpts,
       beforeEnter: [],
     },
     {
       path: "/customers/new",
       component: CustomerPage,
-      options: {
-        props : {
-          fetch: fetchFn(setLoading, true),
-          loadComplete: setLoading,
-          showNotification: showNotification
-        }
-      },
+      options: routeOpts,
       beforeEnter: [],
     },
     {
       path: "/customers/:customerId",
       component: CustomerPage,
-      options: {
-        props : {
-          fetch: fetchFn(setLoading),
-          loadComplete: setLoading,
-          showNotification: showNotification
-        }
-      },
+      options: routeOpts,
       beforeEnter: [],
     },
   ];

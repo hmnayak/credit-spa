@@ -1,6 +1,6 @@
 import { getToken } from "../services/authsvc";
 
-export function fetchFn(setLoading, isNewCust) {
+export function fetchFn(setLoading) {
   return async function(url, params) {
     try {
       setLoading(true);
@@ -14,12 +14,7 @@ export function fetchFn(setLoading, isNewCust) {
         if (res.status == 401) {
           window.location.href = '/login';
         }
-        if(isNewCust){
-          return res;
-        }
-        else {
-          return res.json();
-        }
+        return res.json();
       });
     } catch(err) {
       if (err == 'nouser') {

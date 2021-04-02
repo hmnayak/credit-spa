@@ -12,7 +12,7 @@ export async function getCustomerApi(http, id) {
     return await http("/api/customers/" + id, params);
 }
 
-export async function createCustomer(http, id, name, email, phonenumber, gstin) {
+export async function upsertCustomer(http, id, name, email, phonenumber, gstin) {
     const data = {
         customerid : id,
         name : name,

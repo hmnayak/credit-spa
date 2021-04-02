@@ -1,7 +1,9 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
-import { createCustomer } from "../../services/custapi";
-import { getCustomerApi } from "../../services/custapi";
+import {
+  upsertCustomer as upsertCustomer,
+  getCustomerApi,
+} from "../../services/custapi";
 
 export class CustomerPage extends React.Component {
   constructor(props) {
@@ -21,6 +23,7 @@ export class CustomerPage extends React.Component {
     if (custId != undefined) {
       getCustomerApi(this.props.fetch, custId).then((res) => {
         this.setState({
+          id: res.customerid,
           name: res.name,
           email: res.email,
           phonenumber: res.phone,
@@ -106,9 +109,10 @@ export class CustomerPage extends React.Component {
     });
   }
 
-  showSuccess() {
-    let custName = this.state.name;
-    this.props.showNotification(custName + "- updated successful!");
+  showSuccess(status) {
+    this.props.showNotification(
+      this.state.name + " - " + status + " successful!"
+    );
     this.setState({
       id: "",
       name: "",
@@ -120,20 +124,19 @@ export class CustomerPage extends React.Component {
 
   onSubmitCustomerClicked(e) {
     e.preventDefault();
-    createCustomer(
+    upsertCustomer(
       this.props.fetch,
       this.state.id,
       this.state.name,
       this.state.email,
       this.state.phonenumber,
-      this.state.gstin,
-      this.showError.bind(this),
-      this.showSuccess.bind(this)
-    ).then((response) => {
-      if (response.ok) {
-        this.showSuccess();
+      this.state.gstin
+    ).then((res) => {
+      console.log(res.status);
+      if (res.status) {
+        this.showSuccess(res.status);
       } else {
-        this.showError(response.status);
+        this.showError(res.status);
       }
     });
   }
