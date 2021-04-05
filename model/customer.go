@@ -11,17 +11,8 @@ type Customer struct {
 	GSTIN          string `db:"gstin" json:"gstin"`
 }
 
-// Defaulter is the model of a person/business entity who has defaulted on their payment
-type Defaulter struct {
-	ID             int     `json:"id"`
-	FullName       string  `json:"fullname"`
-	SearchName     string  `json:"searchname"`
-	DeliveryRoute  string  `json:"route"`
-	DueAmount      float64 `json:"dueamount"`
-	LatestCredit   float64 `json:"latestcredit"`
-	DueFrom        string  `json:"duefrom"`
-	PaymentInCycle float64 `json:"paymentincycle"`
-	LastPaidOn     string  `json:"lastpaidon"`
-	PayCycle       string  `json:"paycycle"`
-	DefaultCause   string  `json:"defaultcause"`
+type ListCustomersResponse struct {
+	Customers     []*Customer `json:"customers"`
+	NextPageToken int         `json:"nextpagetoken"`
+	TotalSize     int         `json:"totalsize"`
 }

@@ -37,13 +37,13 @@ func UpsertCustomer(db model.Db) http.Handler {
 			ui.RespondError(w, http.StatusInternalServerError, "")
 			return
 		}
-		origin := r.Header.Get("Origin")
+
 		if isNewCustomer {
-			res := ui.CreateResponse(http.StatusCreated, `{ "status": "OK" }`, nil)
-			ui.Respond(w, res, origin)
+			res := ui.CreateResponse(http.StatusCreated, nil)
+			ui.Respond(w, res)
 		} else {
-			res := ui.CreateResponse(http.StatusOK, `{ "status": "Updated" }`, nil)
-			ui.Respond(w, res, origin)
+			res := ui.CreateResponse(http.StatusOK, nil)
+			ui.Respond(w, res)
 		}
 	})
 }

@@ -23,14 +23,14 @@ func AuthMiddleware(authClient *auth.Client, db model.Db) func(http.Handler) htt
 			token := strings.Replace(authHeader, "Bearer ", "", 1)
 			t, err := authClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
-				origin := req.Header.Get("Origin")
-				var response ui.Response
-				response = ui.CreateResponse(http.StatusUnauthorized, fmt.Sprintf("Auth not Ok: %v", err.Error()), nil)
-				ui.Respond(w, response, origin)
+				ui.RespondError(w, http.StatusUnauthorized, fmt.Sprintf("Auth not Ok: %v", err.Error()))
 				return
 			}
-			var userID string
-			var IDType string
+
+			// unique identifier for users depends on sign-up method
+			// email authentication has a name associated with user
+			// with oauth it is auto-generated ID
+			var userID, IDType string
 			if username, found := t.Claims["name"]; found {
 				userID = fmt.Sprintf("%v", username)
 				IDType = "user_name"
@@ -38,6 +38,7 @@ func AuthMiddleware(authClient *auth.Client, db model.Db) func(http.Handler) htt
 				userID = t.UID
 				IDType = "user_tid"
 			}
+
 			var orgID string
 			if exists, _ := db.DoesUserExist(userID); !exists {
 				orgID, _ = db.CreateUser(userID, IDType)
@@ -45,6 +46,7 @@ func AuthMiddleware(authClient *auth.Client, db model.Db) func(http.Handler) htt
 				orgID, _ = db.GetOrganisationID(userID)
 			}
 			ctx := context.WithValue(req.Context(), contextkeys.OrgID, orgID)
+
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}

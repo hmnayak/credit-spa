@@ -20,11 +20,12 @@ import (
 
 // AppConfig is a container of api configuration data
 type AppConfig struct {
-	Port          string `yaml:"port"`
-	PGConn        string `yaml:"pg_conn"`
-	StaticDir     string `yaml:"static_dir"`
-	AuthSecret    string `yaml:"authsecret"`
-	FBServiceFile string `yaml:"service_file_location"`
+	Port              string `yaml:"port"`
+	PGConn            string `yaml:"pg_conn"`
+	StaticDir         string `yaml:"static_dir"`
+	AuthSecret        string `yaml:"authsecret"`
+	FBServiceFile     string `yaml:"service_file_location"`
+	CustomersPageSize int    `yaml:"customers_page_size"`
 }
 
 func main() {
@@ -66,7 +67,7 @@ func main() {
 	api.Use(rest.AuthMiddleware(authClient, db))
 
 	api.Handle("/customers", rest.UpsertCustomer(db)).Methods("PUT")
-	api.Handle("/customers", rest.ListCustomers(db)).Methods("GET")
+	api.Handle("/customers", rest.ListCustomers(db, config.CustomersPageSize)).Methods("GET")
 	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
 	api.Handle("/ping", pingHandler(c))
 
@@ -100,9 +101,8 @@ func spaHandler(staticDir string) http.Handler {
 
 func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		origin := req.Header.Get("Origin")
 		var response ui.Response
-		response = ui.CreateResponse(http.StatusOK, `{ "status": "OK" }`, nil)
-		ui.Respond(res, response, origin)
+		response = ui.CreateResponse(http.StatusOK, nil)
+		ui.Respond(res, response)
 	})
 }
