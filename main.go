@@ -12,36 +12,29 @@ import (
 	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
 
+	"github.com/hmnayak/credit/config"
 	"github.com/hmnayak/credit/controller"
 	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/rest"
 	"github.com/hmnayak/credit/ui"
 )
 
-// AppConfig is a container of api configuration data
-type AppConfig struct {
-	Port              string `yaml:"port"`
-	PGConn            string `yaml:"pg_conn"`
-	StaticDir         string `yaml:"static_dir"`
-	AuthSecret        string `yaml:"authsecret"`
-	FBServiceFile     string `yaml:"service_file_location"`
-	CustomersPageSize int    `yaml:"customers_page_size"`
-}
-
 func main() {
-
-	configFile, err := ioutil.ReadFile("config.yaml")
+	configFile, err := ioutil.ReadFile("config/config.yaml")
 	if err != nil {
 		log.Fatalln("Error reading configuration file:", err)
 	}
 
-	var config AppConfig
-	err = yaml.Unmarshal([]byte(configFile), &config)
+	var appConfig config.AppConfig
+	err = yaml.Unmarshal([]byte(configFile), &appConfig)
 	if err != nil {
 		log.Fatalln("Error parsing configuration data:", err)
 	}
+	if appConfig.CustomersPageSize == 0 {
+		appConfig.CustomersPageSize = config.DefaultCustomersPageSize
+	}
 
-	opt := option.WithCredentialsFile(config.FBServiceFile)
+	opt := option.WithCredentialsFile(appConfig.FBServiceFile)
 	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
@@ -53,9 +46,9 @@ func main() {
 	}
 
 	c := controller.Controller{}
-	c.Init(config.PGConn, config.AuthSecret, authClient)
+	c.Init(appConfig.PGConn, appConfig.AuthSecret, authClient)
 
-	db, err := db.InitDb(config.PGConn)
+	db, err := db.InitDb(appConfig.PGConn)
 	if err != nil {
 		log.Fatalln("Error InitDb:", err)
 	}
@@ -67,16 +60,16 @@ func main() {
 	api.Use(rest.AuthMiddleware(authClient, db))
 
 	api.Handle("/customers", rest.UpsertCustomer(db)).Methods("PUT")
-	api.Handle("/customers", rest.ListCustomers(db, config.CustomersPageSize)).Methods("GET")
+	api.Handle("/customers", rest.ListCustomers(db, appConfig.CustomersPageSize)).Methods("GET")
 	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
 	api.Handle("/ping", pingHandler(c))
 
-	if config.StaticDir != "" {
-		r.PathPrefix("/").Handler(spaHandler(config.StaticDir))
+	if appConfig.StaticDir != "" {
+		r.PathPrefix("/").Handler(spaHandler(appConfig.StaticDir))
 	}
 
-	log.Println("Starting server on port " + config.Port)
-	err = http.ListenAndServe(":"+config.Port, r)
+	log.Println("Starting server on port " + appConfig.Port)
+	err = http.ListenAndServe(":"+appConfig.Port, r)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
