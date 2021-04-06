@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Page, Block } from "framework7-react";
-import { getCustomersApi } from "../services/custapi";
+import { getCustomersPaginated } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
   const [customers, setCustomers] = useState([]);
-
-  useEffect(() => {
-    getCustomersApi(props.fetch).then((res) => {
-      setCustomers(res);
-    });
+  const [pageCount, setPageCount] = useState([]);
+  const [pageSize, setPageSize] = useState(3);
+  useEffect(async () => {
+    const response = await getCustomersPaginated(props.fetch, props.f7route.query["page"]);
+    setCustomers(response.customers);
+    if ('pageSize' in props) {
+      setPageSize(props.pageSize);
+    }
+    setPageCount(response.totalsize % pageSize === 0 ? response.totalsize / pageSize : Math.floor(response.totalsize / pageSize) + 1);
   }, []);
 
   return (
@@ -35,6 +39,21 @@ export const ListCustomersPage = (props) => {
                       </a>
                     ))}
                   </li>
+                </ul>
+              </div>
+            </li>
+            <li>
+              <div >
+                <ul style={{ paddingLeft: "0", listStyle: "none", textAlign: "right"}}>
+                    {Array.from({length: pageCount}, (_, i) => ++i).map((pageNum) => (
+                      <li style={{ display: "inline" }} key={pageNum}>
+                        <a style={{ marginLeft: "10px" }}
+                          href={"/customers/?page=" + pageNum}
+                        >
+                          {pageNum}
+                        </a>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </li>
