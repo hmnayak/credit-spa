@@ -5,13 +5,6 @@ export async function getCustomersApi(http) {
     return await http("/api/customers", params);
 }
 
-export async function getCustomersPaginated(http, pageToken) {
-    const params = {
-      method: "GET",
-    };
-    return await http(`/api/customers?page=${pageToken}`, params);
-}
-
 export async function getCustomerApi(http, id) {
     const params = {
       method: "GET",

@@ -56,13 +56,7 @@ export default (setLoading, showNotification) => {
       beforeEnter: [],
     },
     {
-      path: "/customers/",
-      component: ListCustomersPage,
-      options: routeOpts,
-      beforeEnter: [],
-    },
-    {
-      path: "/customers/?page=:pageToken",
+      path: "/customers",
       component: ListCustomersPage,
       options: routeOpts,
       beforeEnter: [],
