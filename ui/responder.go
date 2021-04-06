@@ -29,6 +29,5 @@ func CreateResponse(status int, payload interface{}) Response {
 
 // RespondError responsds to http request with an error response
 func RespondError(w http.ResponseWriter, errorcode int, message string) {
-	r := Response{HTTPStatus: errorcode, Message: message}
-	Respond(w, r)
+	http.Error(w, message, errorcode)
 }
