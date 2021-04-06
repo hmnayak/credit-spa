@@ -28,7 +28,7 @@ func ListCustomers(db model.Db, pageSize int) http.Handler {
 				return
 			}
 
-			if customersCount <= (pageToken-1)*pageSize {
+			if customersCount > 0 && customersCount <= (pageToken-1)*pageSize {
 				ui.RespondError(w, http.StatusBadRequest, "page does not exist")
 				return
 			}

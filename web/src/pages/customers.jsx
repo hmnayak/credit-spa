@@ -4,11 +4,21 @@ import { getCustomersApi } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
   const [customers, setCustomers] = useState([]);
-
-  useEffect(() => {
-    getCustomersApi(props.fetch).then((res) => {
-      setCustomers(res);
-    });
+  const [pageCount, setPageCount] = useState(1);
+  const [pageSize, setPageSize] = useState(3);
+  useEffect(async () => {
+    const response = await getCustomersPaginated(props.fetch, props.f7route.query["page"]);
+    const content = await response.json();
+    setCustomers(content.customers);
+    if ('pageSize' in props) {
+      setPageSize(props.pageSize);
+    }
+    if (content.totalsize > 0)
+    {
+      setPageCount(content.totalsize % pageSize === 0 ? 
+        content.totalsize / pageSize : 
+        Math.floor(content.totalsize / pageSize) + 1);
+    }
   }, []);
 
   return (

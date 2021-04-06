@@ -14,7 +14,7 @@ export function fetchFn(setLoading) {
         if (res.status == 401) {
           window.location.href = '/login';
         }
-        return res.json();
+        return res;
       });
     } catch(err) {
       if (err == 'nouser') {

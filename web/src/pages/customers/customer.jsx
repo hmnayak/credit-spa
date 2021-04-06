@@ -21,13 +21,14 @@ export class CustomerPage extends React.Component {
   componentDidMount() {
     let custId = this.props.f7route.params.customerId;
     if (custId != undefined) {
-      getCustomerApi(this.props.fetch, custId).then((res) => {
+      getCustomerApi(this.props.fetch, custId).then(async (res) => {
+        const customer = await res.json();
         this.setState({
-          id: res.customerid,
-          name: res.name,
-          email: res.email,
-          phonenumber: res.phone,
-          gstin: res.gstin,
+          id: customer.customerid,
+          name: customer.name,
+          email: customer.email,
+          phonenumber: customer.phone,
+          gstin: customer.gstin,
         });
       });
     }
@@ -133,8 +134,7 @@ export class CustomerPage extends React.Component {
       this.state.phonenumber,
       this.state.gstin
     ).then((res) => {
-      console.log(res.status);
-      if (res.status) {
+      if (res.ok) {
         this.showSuccess(res.status);
       } else {
         this.showError(res.status);
