@@ -4,20 +4,33 @@ import { getCustomersPaginated } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
   const [customers, setCustomers] = useState([]);
-  const [pageCount, setPageCount] = useState(1);
   const [pageSize, setPageSize] = useState(3);
+  const [previousPageToken, setPreviousPageToken] = useState(0);
+  const [currentPageToken, setCurrentPageToken] = useState(0);
+  const [nextPageToken, setNextPageToken] = useState(0);
+
   useEffect(async () => {
-    const response = await getCustomersPaginated(props.fetch, props.f7route.query["page"]);
+    console.log("listcustomers");
+    const currentPage = parseInt(props.f7route.query["page"]);
+    setCurrentPageToken(currentPage);
+
+    const response = await getCustomersPaginated(props.fetch, currentPage);
     const content = await response.json();
     setCustomers(content.customers);
+
     if ('pageSize' in props) {
       setPageSize(props.pageSize);
     }
-    if (content.totalsize > 0)
-    {
-      setPageCount(content.totalsize % pageSize === 0 ? 
-        content.totalsize / pageSize : 
-        Math.floor(content.totalsize / pageSize) + 1);
+
+    const numPages = content.totalsize % pageSize === 0 ? 
+      content.totalsize / pageSize : 
+      Math.floor(content.totalsize / pageSize) + 1;
+
+    if (currentPage > 1) {
+      setPreviousPageToken(currentPage - 1);
+    }
+    if (currentPage < numPages) {
+      setNextPageToken(currentPage + 1);
     }
   }, []);
 
@@ -51,15 +64,29 @@ export const ListCustomersPage = (props) => {
             <li>
               <div >
                 <ul style={{ paddingLeft: "0", listStyle: "none", textAlign: "right"}}>
-                    {Array.from({length: pageCount}, (_, i) => ++i).map((pageNum) => (
-                      <li style={{ display: "inline" }} key={pageNum}>
-                        <a style={{ marginLeft: "10px" }}
-                          href={"/customers/?page=" + pageNum}
-                        >
-                          {pageNum}
+                  {
+                    !!previousPageToken &&
+                      <li style={{ display: "inline" }}>
+                        <a style={{ margin: "5px" }}
+                          href={"/customers/?page=" + previousPageToken}>
+                          prev
                         </a>
                       </li>
-                    ))}
+                  }
+                  <li style={{ display: "inline" }}>
+                    <label style={{ margin: "5px" }}>
+                      {currentPageToken}
+                    </label>
+                  </li>
+                  {
+                    !!nextPageToken &&
+                      <li style={{ display: "inline" }}>
+                        <a style={{ margin: "5px" }}
+                          href={"/customers/?page=" + nextPageToken}>
+                          next
+                        </a>
+                      </li>
+                  }
                 </ul>
               </div>
             </li>
