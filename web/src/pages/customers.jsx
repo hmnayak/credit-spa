@@ -4,18 +4,18 @@ import { getCustomersPaginated } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
   const currentPageToken = parseInt(props.f7route.query["page"]);
-  const [customers, setCustomers] = useState([]);
-  const [pageSize, setPageSize] = useState(3);
-  const [previousPageToken, setPreviousPageToken] = useState(0);
-  const [nextPageToken, setNextPageToken] = useState(0);
+  let previousPageToken = 0;
+  let nextPageToken = 0;
+  let pageSize = 3;
+  let customers = [];
 
   useEffect(async () => {
     const response = await getCustomersPaginated(props.fetch, currentPageToken);
     const content = await response.json();
-    setCustomers(content.customers);
+    customers = content.customers;
 
     if ('pageSize' in props) {
-      setPageSize(props.pageSize);
+      pageSize = props.pageSize;
     }
 
     const numPages = content.totalsize % pageSize === 0 ? 
@@ -23,10 +23,10 @@ export const ListCustomersPage = (props) => {
       Math.floor(content.totalsize / pageSize) + 1;
 
     if (currentPageToken > 1) {
-      setPreviousPageToken(currentPageToken - 1);
+      prevPageToken = currentPageToken - 1;
     }
     if (currentPageToken < numPages) {
-      setNextPageToken(currentPageToken + 1);
+      nextPageToken = currentPageToken + 1;
     }
   }, []);
 
