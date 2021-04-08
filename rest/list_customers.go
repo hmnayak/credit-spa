@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/hmnayak/credit/config"
 	"github.com/hmnayak/credit/contextkeys"
 	"github.com/hmnayak/credit/model"
 	"github.com/hmnayak/credit/ui"
 )
 
 // ListCustomers is a handler to get all customers of an organisation
-func ListCustomers(db model.Db, pageSize int) http.Handler {
+func ListCustomers(db model.Db) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		orgID := r.Context().Value(contextkeys.OrgID)
 		if orgID == nil {
@@ -22,29 +23,29 @@ func ListCustomers(db model.Db, pageSize int) http.Handler {
 		if _, ok := r.URL.Query()["page"]; ok {
 			pageToken, _ := strconv.Atoi(r.URL.Query().Get("page"))
 
-			customersCount, err := db.GetCustomersCount(orgID.(string))
+			nCustomers, err := db.GetCustomersCount(orgID.(string))
 			if err != nil {
 				ui.RespondError(w, http.StatusInternalServerError, "")
 				return
 			}
 
-			if customersCount > 0 && customersCount <= (pageToken-1)*pageSize {
+			if nCustomers > 0 && nCustomers <= (pageToken-1)*config.ApiConfig.CustomersPageSize {
 				ui.RespondError(w, http.StatusBadRequest, "page does not exist")
 				return
 			}
 
-			customers, err := db.GetCustomersPaginated(orgID.(string), pageToken, pageSize)
+			customers, err := db.GetCustomersPaginated(orgID.(string), pageToken, config.ApiConfig.CustomersPageSize)
 			if err != nil {
 				ui.RespondError(w, http.StatusInternalServerError, "")
 				return
 			}
 
-			nextPageToken := 0
-			if pageToken*pageSize < customersCount {
-				nextPageToken = pageToken + 1
+			nextPage := 0
+			if pageToken*config.ApiConfig.CustomersPageSize < nCustomers {
+				nextPage = pageToken + 1
 			}
-			listCustomersResponse := model.ListCustomersResponse{Customers: customers, NextPageToken: nextPageToken, TotalSize: customersCount}
-			res := ui.CreateResponse(http.StatusOK, listCustomersResponse)
+			listResponse := model.ListCustomersResponse{Customers: customers, NextPageToken: nextPage, TotalSize: nCustomers}
+			res := ui.CreateResponse(http.StatusOK, listResponse)
 			ui.Respond(w, res)
 		} else {
 			customers, err := db.GetAllCustomers(orgID.(string))

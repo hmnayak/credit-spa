@@ -20,21 +20,20 @@ import (
 )
 
 func main() {
-	configFile, err := ioutil.ReadFile("config/config.yaml")
+	configFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatalln("Error reading configuration file:", err)
 	}
 
-	var appConfig config.AppConfig
-	err = yaml.Unmarshal([]byte(configFile), &appConfig)
+	err = yaml.Unmarshal([]byte(configFile), &config.ApiConfig)
 	if err != nil {
 		log.Fatalln("Error parsing configuration data:", err)
 	}
-	if appConfig.CustomersPageSize == 0 {
-		appConfig.CustomersPageSize = config.DefaultCustomersPageSize
+	if config.ApiConfig.CustomersPageSize == 0 {
+		config.ApiConfig.CustomersPageSize = config.DefaultCustomersPageSize
 	}
 
-	opt := option.WithCredentialsFile(appConfig.FBServiceFile)
+	opt := option.WithCredentialsFile(config.ApiConfig.FBServiceFile)
 	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
@@ -46,9 +45,9 @@ func main() {
 	}
 
 	c := controller.Controller{}
-	c.Init(appConfig.PGConn, appConfig.AuthSecret, authClient)
+	c.Init(config.ApiConfig.PGConn, config.ApiConfig.AuthSecret, authClient)
 
-	db, err := db.InitDb(appConfig.PGConn)
+	db, err := db.InitDb(config.ApiConfig.PGConn)
 	if err != nil {
 		log.Fatalln("Error InitDb:", err)
 	}
@@ -60,16 +59,16 @@ func main() {
 	api.Use(rest.AuthMiddleware(authClient, db))
 
 	api.Handle("/customers", rest.UpsertCustomer(db)).Methods("PUT")
-	api.Handle("/customers", rest.ListCustomers(db, appConfig.CustomersPageSize)).Methods("GET")
+	api.Handle("/customers", rest.ListCustomers(db)).Methods("GET")
 	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
 	api.Handle("/ping", pingHandler(c))
 
-	if appConfig.StaticDir != "" {
-		r.PathPrefix("/").Handler(spaHandler(appConfig.StaticDir))
+	if config.ApiConfig.StaticDir != "" {
+		r.PathPrefix("/").Handler(spaHandler(config.ApiConfig.StaticDir))
 	}
 
-	log.Println("Starting server on port " + appConfig.Port)
-	err = http.ListenAndServe(":"+appConfig.Port, r)
+	log.Println("Starting server on port " + config.ApiConfig.Port)
+	err = http.ListenAndServe(":"+config.ApiConfig.Port, r)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
