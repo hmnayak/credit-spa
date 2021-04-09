@@ -58,9 +58,7 @@ export const ListCustomersPage = (props) => {
                     </label>
                   </li>
                   {
-                    !!(currentPageToken < (customersListResponse.totalsize % pageSize === 0 ? 
-                        customersListResponse.totalsize / pageSize : 
-                        Math.floor(customersListResponse.totalsize / pageSize) + 1)) &&
+                    !!customersListResponse.nextpagetoken &&
                       <li style={{ display: "inline" }}>
                         <a style={{ margin: "5px" }}
                           href={"/customers/?page=" + (currentPageToken + 1)}>
