@@ -39,10 +39,10 @@ func UpsertCustomer(db model.Db) http.Handler {
 		}
 
 		if isNewCustomer {
-			res := ui.CreateResponse(http.StatusCreated, nil)
+			res := ui.Response{HTTPStatus: http.StatusCreated}
 			ui.Respond(w, res)
 		} else {
-			res := ui.CreateResponse(http.StatusOK, nil)
+			res := ui.Response{HTTPStatus: http.StatusOK}
 			ui.Respond(w, res)
 		}
 	})
@@ -54,9 +54,6 @@ func assignCustomerID(db model.Db, customer *model.Customer) (err error) {
 		return
 	}
 	customer.CustomerID, err = createNewCustomerID(latestCustomerID)
-	if err != nil {
-		return
-	}
 	return
 }
 

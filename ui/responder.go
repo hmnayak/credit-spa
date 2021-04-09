@@ -21,12 +21,6 @@ func Respond(w http.ResponseWriter, res Response) {
 	}
 }
 
-// CreateResponse creates a Response object that can be used to write http responses
-func CreateResponse(status int, payload interface{}) Response {
-	r := Response{HTTPStatus: status, Payload: payload}
-	return r
-}
-
 // RespondError responsds to http request with an error response
 func RespondError(w http.ResponseWriter, errorcode int, message string) {
 	http.Error(w, message, errorcode)

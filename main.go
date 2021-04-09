@@ -94,7 +94,7 @@ func spaHandler(staticDir string) http.Handler {
 func pingHandler(c controller.Controller) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var response ui.Response
-		response = ui.CreateResponse(http.StatusOK, nil)
+		response = ui.Response{HTTPStatus: http.StatusOK}
 		ui.Respond(res, response)
 	})
 }

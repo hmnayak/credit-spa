@@ -27,8 +27,8 @@ func GetCustomer(db model.Db) http.Handler {
 			ui.RespondError(w, http.StatusInternalServerError, "")
 			return
 		}
-		res := ui.CreateResponse(http.StatusOK, customer)
+
+		res := ui.Response{HTTPStatus: http.StatusOK, Payload: customer}
 		ui.Respond(w, res)
-		return
 	})
 }
