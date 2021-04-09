@@ -4,30 +4,13 @@ import { getCustomersPaginated } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
   const currentPageToken = parseInt(props.f7route.query["page"]);
-  const [customers, setCustomers] = useState([]);
-  const [pageSize, setPageSize] = useState(3);
-  const [previousPageToken, setPreviousPageToken] = useState(0);
-  const [nextPageToken, setNextPageToken] = useState(0);
+  const [customersListResponse, setCustomersList] = useState({ customers: [], totalSize: 0 });
+  const pageSize = 'pageSize' in props ? props.pageSize : 3;
 
   useEffect(async () => {
     const response = await getCustomersPaginated(props.fetch, currentPageToken);
     const content = await response.json();
-    setCustomers(content.customers);
-
-    if ('pageSize' in props) {
-      setPageSize(props.pageSize);
-    }
-
-    const numPages = content.totalsize % pageSize === 0 ? 
-      content.totalsize / pageSize : 
-      Math.floor(content.totalsize / pageSize) + 1;
-
-    if (currentPageToken > 1) {
-      setPreviousPageToken(currentPageToken - 1);
-    }
-    if (currentPageToken < numPages) {
-      setNextPageToken(currentPageToken + 1);
-    }
+    setCustomersList(content);
   }, []);
 
   return (
@@ -44,7 +27,7 @@ export const ListCustomersPage = (props) => {
               <div className="list">
                 <ul style={{ paddingLeft: "0" }}>
                   <li>
-                    {customers.map((customer) => (
+                    {customersListResponse.customers.map((customer) => (
                       <a
                         key={customer.customerid}
                         className="list-button"
@@ -61,10 +44,10 @@ export const ListCustomersPage = (props) => {
               <div >
                 <ul style={{ paddingLeft: "0", listStyle: "none", textAlign: "right"}}>
                   {
-                    !!previousPageToken &&
+                    !!(currentPageToken > 1) &&
                       <li style={{ display: "inline" }}>
                         <a style={{ margin: "5px" }}
-                          href={"/customers/?page=" + previousPageToken}>
+                          href={"/customers/?page=" + (currentPageToken - 1)}>
                           prev
                         </a>
                       </li>
@@ -75,10 +58,12 @@ export const ListCustomersPage = (props) => {
                     </label>
                   </li>
                   {
-                    !!nextPageToken &&
+                    !!(currentPageToken < (customersListResponse.totalsize % pageSize === 0 ? 
+                        customersListResponse.totalsize / pageSize : 
+                        Math.floor(customersListResponse.totalsize / pageSize) + 1)) &&
                       <li style={{ display: "inline" }}>
                         <a style={{ margin: "5px" }}
-                          href={"/customers/?page=" + nextPageToken}>
+                          href={"/customers/?page=" + (currentPageToken + 1)}>
                           next
                         </a>
                       </li>
