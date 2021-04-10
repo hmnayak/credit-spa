@@ -22,7 +22,6 @@ func ListCustomers(db model.Db) http.Handler {
 
 		if pageToken := r.URL.Query().Get("page"); len(pageToken) > 0 {
 			pageToken, _ := strconv.Atoi(pageToken)
-
 			listCustomersPaginated(orgID.(string), pageToken, db, w)
 		} else {
 			listAllCustomers(orgID.(string), db, w)
@@ -39,32 +38,32 @@ func listAllCustomers(orgID string, db model.Db, w http.ResponseWriter) {
 	ui.Respond(w, res)
 }
 
-func listCustomersPaginated(orgID string, pageToken int, db model.Db, w http.ResponseWriter) {
-	nCustomers, err := db.GetCustomersCount(orgID)
+func listCustomersPaginated(orgID string, page int, db model.Db, w http.ResponseWriter) {
+	count, err := db.GetCustomersCount(orgID)
 	if err != nil {
 		ui.RespondError(w, http.StatusInternalServerError, "")
 		return
 	}
 
-	if isTokenValid := validatePageToken(pageToken, nCustomers); !isTokenValid {
+	if isValid := validatePageToken(page, count); !isValid {
 		ui.RespondError(w, http.StatusBadRequest, "page does not exist")
 		return
 	}
 
-	customers, err := db.GetCustomersPaginated(orgID, pageToken, ApiConfig.CustomersPageSize)
+	customers, err := db.GetCustomersPaginated(orgID, page, ApiConfig.CustomersPageSize)
 	if err != nil {
 		ui.RespondError(w, http.StatusInternalServerError, "")
 		return
 	}
 
 	nextPage := 0
-	if pageToken*ApiConfig.CustomersPageSize < nCustomers {
-		nextPage = pageToken + 1
+	if page*ApiConfig.CustomersPageSize < count {
+		nextPage = page + 1
 	}
 
-	listResponse := model.ListCustomersResponse{Customers: customers, NextPageToken: nextPage, TotalSize: nCustomers}
-	res := ui.Response{HTTPStatus: http.StatusOK, Payload: listResponse}
-	ui.Respond(w, res)
+	res := model.ListCustomersResponse{Customers: customers, NextPageToken: nextPage, TotalSize: count}
+	r := ui.Response{HTTPStatus: http.StatusOK, Payload: res}
+	ui.Respond(w, r)
 }
 
 func validatePageToken(pageToken int, customersCount int) bool {
