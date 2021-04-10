@@ -12,7 +12,7 @@ import (
 	"google.golang.org/api/option"
 	"gopkg.in/yaml.v2"
 
-	"github.com/hmnayak/credit/config"
+	. "github.com/hmnayak/credit/config"
 	"github.com/hmnayak/credit/controller"
 	"github.com/hmnayak/credit/db"
 	"github.com/hmnayak/credit/rest"
@@ -25,15 +25,15 @@ func main() {
 		log.Fatalln("Error reading configuration file:", err)
 	}
 
-	err = yaml.Unmarshal([]byte(configFile), &config.ApiConfig)
+	err = yaml.Unmarshal([]byte(configFile), &ApiConfig)
 	if err != nil {
 		log.Fatalln("Error parsing configuration data:", err)
 	}
-	if config.ApiConfig.CustomersPageSize == 0 {
-		config.ApiConfig.CustomersPageSize = config.DefaultCustomersPageSize
+	if ApiConfig.CustomersPageSize == 0 {
+		ApiConfig.CustomersPageSize = DefaultCustomersPageSize
 	}
 
-	opt := option.WithCredentialsFile(config.ApiConfig.FBServiceFile)
+	opt := option.WithCredentialsFile(ApiConfig.FBServiceFile)
 	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
@@ -45,9 +45,9 @@ func main() {
 	}
 
 	c := controller.Controller{}
-	c.Init(config.ApiConfig.PGConn, config.ApiConfig.AuthSecret, authClient)
+	c.Init(ApiConfig.PGConn, ApiConfig.AuthSecret, authClient)
 
-	db, err := db.InitDb(config.ApiConfig.PGConn)
+	db, err := db.InitDb(ApiConfig.PGConn)
 	if err != nil {
 		log.Fatalln("Error InitDb:", err)
 	}
@@ -63,12 +63,12 @@ func main() {
 	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
 	api.Handle("/ping", pingHandler(c))
 
-	if config.ApiConfig.StaticDir != "" {
-		r.PathPrefix("/").Handler(spaHandler(config.ApiConfig.StaticDir))
+	if ApiConfig.StaticDir != "" {
+		r.PathPrefix("/").Handler(spaHandler(ApiConfig.StaticDir))
 	}
 
-	log.Println("Starting server on port " + config.ApiConfig.Port)
-	err = http.ListenAndServe(":"+config.ApiConfig.Port, r)
+	log.Println("Starting server on port " + ApiConfig.Port)
+	err = http.ListenAndServe(":"+ApiConfig.Port, r)
 	if err != nil {
 		log.Fatalln("Error starting server:", err)
 	}
