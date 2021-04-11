@@ -3,7 +3,7 @@ import { Page, Block } from "framework7-react";
 import { getItemsPaginated } from "../services/itemapi";
 
 export const ListItemsPage = (props) => {
-  const currentPageToken = parseInt(props.f7route.query["page"]);
+  const currentPageToken = "page" in props.f7route.query ? parseInt(props.f7route.query["page"]) : 1;
   const [itemsListResponse, setItemsList] = useState({ items: [], totalSize: 0 });
 
   useEffect(async () => {

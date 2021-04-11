@@ -3,7 +3,7 @@ import { Page, Block } from "framework7-react";
 import { getCustomersPaginated } from "../services/custapi";
 
 export const ListCustomersPage = (props) => {
-  const currentPageToken = parseInt(props.f7route.query["page"]);
+  const currentPageToken = "page" in props.f7route.query ? parseInt(props.f7route.query["page"]) : 1;
   const [customersListResponse, setCustomersList] = useState({ customers: [], totalSize: 0 });
 
   useEffect(async () => {

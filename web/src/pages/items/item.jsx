@@ -115,7 +115,7 @@ export class ItemPage extends React.Component {
 
   showSuccess(status) {
     if (this.props.f7route.params.itemId !== undefined) {
-      this.props.f7router.navigate("/items");
+      this.props.f7router.navigate("/items/");
     }
     this.props.showNotification(this.state.name);
     if (this.props.f7route.params.itemId === undefined) {
