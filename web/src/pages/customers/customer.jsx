@@ -107,13 +107,15 @@ export class CustomerPage extends React.Component {
       this.props.f7router.navigate("/customers");
     }
     this.props.showNotification(this.state.name);
-    this.setState({
-      id: "",
-      name: "",
-      email: "",
-      phonenumber: "",
-      gstin: "",
-    });
+    if (this.props.f7route.params.customerId === undefined) {
+      this.setState({
+        id: "",
+        name: "",
+        email: "",
+        phonenumber: "",
+        gstin: "",
+      });
+    }
   }
 
   onSubmitCustomerClicked(e) {

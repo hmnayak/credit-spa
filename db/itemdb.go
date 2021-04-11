@@ -10,17 +10,17 @@ import (
 func (p *PostgresDb) UpsertItem(it model.Item) (err error) {
 	query :=
 		`
-		INSERT INTO items (item_id, org_id, name, type, hsn, sac, gst, igst) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		ON CONFLICT (item_id, org_id)
-		DO UPDATE SET
-			name = EXCLUDED.name,
-			type = EXCLUDED.type,
-			hsn = EXCLUDED.hsn,
-			sac = EXCLUDED.sac, 
-			gst = EXCLUDED.gst,
-			igst = EXCLUDED.igst
-	`
+			INSERT INTO items (item_id, org_id, name, type, hsn, sac, gst, igst) 
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			ON CONFLICT (item_id, org_id)
+			DO UPDATE SET
+				name = EXCLUDED.name,
+				type = EXCLUDED.type,
+				hsn = EXCLUDED.hsn,
+				sac = EXCLUDED.sac, 
+				gst = EXCLUDED.gst,
+				igst = EXCLUDED.igst
+		`
 
 	_, err = p.dbConn.Exec(query, it.ItemID, it.OrganisationID, it.Name, it.Type, it.HSN, it.SAC, it.GST, it.IGST)
 	if err != nil {
@@ -64,7 +64,7 @@ func (p *PostgresDb) GetLatestItemID(orgID string) (itemID string, err error) {
 
 	err = p.dbConn.Get(&nullableID, query, orgID)
 	if err != nil {
-		log.Printf("Error getting latest customerID: %v", err.Error())
+		log.Printf("Error getting latest itemID: %v", err.Error())
 	}
 
 	itemID = nullableID.String
@@ -90,10 +90,10 @@ func (p *PostgresDb) GetItemsCount(orgID string) (count int, err error) {
 func (p *PostgresDb) GetItem(itemID string, orgID string) (item model.Item, err error) {
 	query :=
 		`
-		SELECT item_id, name, type, hsn, sac, gst, igst
-		FROM items
-		WHERE item_id = $1 AND org_id = $2
-	`
+			SELECT item_id, name, type, hsn, sac, gst, igst
+			FROM items
+			WHERE item_id = $1 AND org_id = $2
+		`
 
 	err = p.dbConn.Get(&item, query, itemID, orgID)
 	if err != nil {

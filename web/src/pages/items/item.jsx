@@ -114,19 +114,21 @@ export class ItemPage extends React.Component {
   }
 
   showSuccess(status) {
-    if (this.props.f7route.params.itemId != undefined) {
+    if (this.props.f7route.params.itemId !== undefined) {
       this.props.f7router.navigate("/items");
     }
     this.props.showNotification(this.state.name);
-    this.setState({
-      id: "",
-      name: "",
-      type: "",
-      hsn: "",
-      sac: "",
-      gst: "",
-      igst: ""
-    });
+    if (this.props.f7route.params.itemId === undefined) {
+      this.setState({
+        id: "",
+        name: "",
+        type: "",
+        hsn: "",
+        sac: "",
+        gst: "",
+        igst: ""
+      });
+    }
   }
 
   onSubmititemClicked(e) {
