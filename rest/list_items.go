@@ -11,6 +11,7 @@ import (
 	"github.com/hmnayak/credit/ui"
 )
 
+// ListItems is a handler to get paginated list of items
 func ListItems(db model.Db) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		orgID := r.Context().Value(contextkeys.OrgID)

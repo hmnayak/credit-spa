@@ -10,7 +10,7 @@ import (
 	"github.com/hmnayak/credit/ui"
 )
 
-// GetItem process requests to get customer details of a single customer
+// GetItem process requests to get details of a single item
 func GetItem(db model.Db) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
@@ -22,13 +22,13 @@ func GetItem(db model.Db) http.Handler {
 			return
 		}
 
-		customer, err := db.GetItem(itemID, orgID.(string))
+		item, err := db.GetItem(itemID, orgID.(string))
 		if err != nil {
 			ui.RespondError(w, http.StatusInternalServerError, "")
 			return
 		}
 
-		res := ui.Response{HTTPStatus: http.StatusOK, Payload: customer}
+		res := ui.Response{HTTPStatus: http.StatusOK, Payload: item}
 		ui.Respond(w, res)
 	})
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/hmnayak/credit/model"
 )
 
+// UpsertItem updates item, if not found inserts a new record
 func (p *PostgresDb) UpsertItem(it model.Item) (err error) {
 	query :=
 		`
@@ -30,6 +31,7 @@ func (p *PostgresDb) UpsertItem(it model.Item) (err error) {
 	return
 }
 
+// GetItemsPaginated gets a paginated list of items
 func (p *PostgresDb) GetItemsPaginated(orgID string, pageToken int) (items []*model.Item, err error) {
 	items = []*model.Item{}
 	query :=
