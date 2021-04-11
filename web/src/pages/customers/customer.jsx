@@ -58,9 +58,7 @@ export class CustomerPage extends React.Component {
                 type="text"
                 placeholder="Name"
                 value={this.state.name}
-                onInput={(e) => {
-                  this.setState({ name: e.target.value });
-                }}
+                onInput={e => this.setState({ name: e.target.value })}
                 required
               ></ListInput>
               <ListInput
@@ -68,9 +66,7 @@ export class CustomerPage extends React.Component {
                 type="email"
                 placeholder="Email address"
                 value={this.state.email}
-                onInput={(e) => {
-                  this.setState({ email: e.target.value });
-                }}
+                onInput={e => this.setState({ email: e.target.value })}
                 required
               ></ListInput>
               <ListInput
@@ -78,9 +74,7 @@ export class CustomerPage extends React.Component {
                 type="tel"
                 placeholder="Phone Number"
                 value={this.state.phonenumber}
-                onInput={(e) => {
-                  this.setState({ phonenumber: e.target.value });
-                }}
+                onInput={e => this.setState({ phonenumber: e.target.value })}
                 required
               ></ListInput>
               <ListInput
@@ -88,9 +82,7 @@ export class CustomerPage extends React.Component {
                 type="text"
                 placeholder="GSTIN"
                 value={this.state.gstin}
-                onInput={(e) => {
-                  this.setState({ gstin: e.target.value });
-                }}
+                onInput={e => this.setState({ gstin: e.target.value })}
                 required
               ></ListInput>
               <p style={{ color: "red" }}>{this.state.errorMsg}</p>

@@ -58,9 +58,7 @@ export class ItemPage extends React.Component {
                 type="text"
                 placeholder="Name"
                 value={this.state.name}
-                onInput={(e) => {
-                  this.setState({ name: e.target.value });
-                }}
+                onInput={e => this.setState({ name: e.target.value })}
                 required
               ></ListInput>
               <ListInput
@@ -68,41 +66,35 @@ export class ItemPage extends React.Component {
                 type="text"
                 placeholder="Type"
                 value={this.state.type}
-                onInput={(e) => {
-                  this.setState({ type: e.target.value });
-                }}
+                onInput={e => this.setState({ type: e.target.value })}
               ></ListInput>
               <ListInput
                 label="HSN"
                 type="number"
                 placeholder="HSN"
                 value={this.state.hsn}
-                onInput={(e) => {
-                  this.setState({ hsn: e.target.value });
-                }}
+                onInput={e => this.setState({ hsn: e.target.value })}
               ></ListInput>
               <ListInput
                 label="SAC"
                 type="number"
                 placeholder="SAC"
                 value={this.state.sac}
-                onInput={(e) => { this.setState({ sac: e.target.value });
-                }}
+                onInput={e => this.setState({ sac: e.target.value })}
               ></ListInput>
               <ListInput
                 label="GST"
                 type="number"
                 placeholder="GST"
                 value={this.state.gst}
-                onInput={(e) => { this.setState({ gst: e.target.value });
-                }}
+                onInput={e => this.setState({ gst: e.target.value })}
               ></ListInput>
               <ListInput
                 label="IGST"
                 type="number"
                 placeholder="IGST"
                 value={this.state.igst}
-                onInput={e => this.setState({ igst: e.target.value }) }
+                onInput={e => this.setState({ igst: e.target.value })}
               ></ListInput>
               <p style={{ color: "red" }}>{this.state.errorMsg}</p>
             </List>
