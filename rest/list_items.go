@@ -38,7 +38,7 @@ func listItemsPaginated(orgID string, page int, db model.Db, rw http.ResponseWri
 		return
 	}
 
-	items, err := db.GetItemsPaginated(orgID, page, ApiConfig.ItemsPageSize)
+	items, err := db.GetItemsPaginated(orgID, page)
 	if err != nil {
 		ui.RespondError(rw, http.StatusInternalServerError, "")
 		return

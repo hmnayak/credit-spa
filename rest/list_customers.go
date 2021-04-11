@@ -50,7 +50,7 @@ func listCustomersPaginated(orgID string, page int, db model.Db, w http.Response
 		return
 	}
 
-	customers, err := db.GetCustomersPaginated(orgID, page, ApiConfig.CustomersPageSize)
+	customers, err := db.GetCustomersPaginated(orgID, page)
 	if err != nil {
 		ui.RespondError(w, http.StatusInternalServerError, "")
 		return

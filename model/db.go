@@ -9,14 +9,14 @@ type Db interface {
 
 	UpsertCustomer(Customer) error
 	GetLatestCustomerID(string) (string, error)
-	GetCustomersPaginated(string, int, int) ([]*Customer, error)
+	GetCustomersPaginated(string, int) ([]*Customer, error)
 	GetAllCustomers(string) ([]*Customer, error)
 	GetCustomer(string, string) (Customer, error)
 	GetCustomersCount(string) (int, error)
 
 	UpsertItem(Item) error
 	GetLatestItemID(string) (string, error)
-	GetItemsPaginated(string, int, int) ([]*Item, error)
+	GetItemsPaginated(string, int) ([]*Item, error)
 	GetItemsCount(string) (int, error)
 	GetItem(string, string) (Item, error)
 }

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	. "github.com/hmnayak/credit/config"
 	"github.com/hmnayak/credit/model"
 )
 
@@ -29,7 +30,7 @@ func (p *PostgresDb) UpsertItem(it model.Item) (err error) {
 	return
 }
 
-func (p *PostgresDb) GetItemsPaginated(orgID string, pageToken int, pageSize int) (items []*model.Item, err error) {
+func (p *PostgresDb) GetItemsPaginated(orgID string, pageToken int) (items []*model.Item, err error) {
 	items = []*model.Item{}
 	query :=
 		`
@@ -42,10 +43,10 @@ func (p *PostgresDb) GetItemsPaginated(orgID string, pageToken int, pageSize int
 
 	offset := 0
 	if pageToken > 0 {
-		offset = (pageToken - 1) * pageSize
+		offset = (pageToken - 1) * ApiConfig.ItemsPageSize
 	}
 
-	err = p.dbConn.Select(&items, query, orgID, pageSize, offset)
+	err = p.dbConn.Select(&items, query, orgID, ApiConfig.ItemsPageSize, offset)
 	if err != nil {
 		log.Printf("Error getting paginated list of items: %v", err.Error())
 	}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	. "github.com/hmnayak/credit/config"
 	"github.com/hmnayak/credit/model"
 )
 
@@ -62,7 +63,7 @@ func (p *PostgresDb) GetCustomersCount(orgID string) (count int, err error) {
 }
 
 // GetCustomersPaginated gets a paginated list of customers
-func (p *PostgresDb) GetCustomersPaginated(orgID string, pageToken int, pageSize int) (customers []*model.Customer, err error) {
+func (p *PostgresDb) GetCustomersPaginated(orgID string, pageToken int) (customers []*model.Customer, err error) {
 	customers = []*model.Customer{}
 	query :=
 		`
@@ -74,9 +75,9 @@ func (p *PostgresDb) GetCustomersPaginated(orgID string, pageToken int, pageSize
 		`
 	offset := 0
 	if pageToken > 0 {
-		offset = (pageToken - 1) * pageSize
+		offset = (pageToken - 1) * ApiConfig.CustomersPageSize
 	}
-	err = p.dbConn.Select(&customers, query, orgID, pageSize, offset)
+	err = p.dbConn.Select(&customers, query, orgID, ApiConfig.CustomersPageSize, offset)
 	if err != nil {
 		log.Printf("Error getting paginated list of customers: %v", err.Error())
 	}
