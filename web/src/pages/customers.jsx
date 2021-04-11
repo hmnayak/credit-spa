@@ -5,7 +5,6 @@ import { getCustomersPaginated } from "../services/custapi";
 export const ListCustomersPage = (props) => {
   const currentPageToken = parseInt(props.f7route.query["page"]);
   const [customersListResponse, setCustomersList] = useState({ customers: [], totalSize: 0 });
-  const pageSize = 'pageSize' in props ? props.pageSize : 3;
 
   useEffect(async () => {
     const response = await getCustomersPaginated(props.fetch, currentPageToken);
