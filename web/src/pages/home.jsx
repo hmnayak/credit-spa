@@ -13,6 +13,8 @@ export const HomePage = (props) => {
                 <a href="/about/" className="link">About</a>
                 <br/>
                 <a href="/customers/?page=1" className="link">Customers</a>
+                <br/>
+                <a href="/items/?page=1" className="link">Items</a>
               </div>
             </div>
           </div>

@@ -4,6 +4,8 @@ import { HomePage } from "./pages/home.jsx";
 import { SignupPage } from "./pages/signup.jsx";
 import { CustomerPage as CustomerPage } from "./pages/customers/customer.jsx"
 import { ListCustomersPage } from "./pages/customers.jsx"
+import { ListItemsPage } from "./pages/items.jsx"
+import { ItemPage as ItemPage } from "./pages/items/item.jsx"
 import { fetchFn } from "./services/api";
 
 export default (setLoading, showNotification) => {
@@ -79,5 +81,23 @@ export default (setLoading, showNotification) => {
       options: routeOpts,
       beforeEnter: [],
     },
+    {
+      path: "/items/",
+      component: ListItemsPage,
+      options: routeOpts,
+      beforeEnter: [],
+    },
+    {
+      path: "/items/\\?page=(.*)",
+      component: ListItemsPage,
+      options: routeOpts,
+      beforeEnter: [],
+    },
+    {
+      path: "/items/new",
+      component: ItemPage,
+      options: routeOpts,
+      beforeEnter: [],
+    }
   ];
 };

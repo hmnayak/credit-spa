@@ -13,4 +13,9 @@ type Db interface {
 	GetAllCustomers(string) ([]*Customer, error)
 	GetCustomer(string, string) (Customer, error)
 	GetCustomersCount(string) (int, error)
+
+	UpsertItem(Item) error
+	GetLatestItemID(string) (string, error)
+	GetItemsPaginated(string, int, int) ([]*Item, error)
+	GetItemsCount(string) (int, error)
 }

@@ -32,6 +32,9 @@ func main() {
 	if ApiConfig.CustomersPageSize == 0 {
 		ApiConfig.CustomersPageSize = DefaultCustomersPageSize
 	}
+	if ApiConfig.CustomersPageSize == 0 {
+		ApiConfig.ItemsPageSize = DefaultItemsPageSize
+	}
 
 	opt := option.WithCredentialsFile(ApiConfig.FBServiceFile)
 	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
@@ -61,6 +64,10 @@ func main() {
 	api.Handle("/customers", rest.UpsertCustomer(db)).Methods("PUT")
 	api.Handle("/customers", rest.ListCustomers(db)).Methods("GET")
 	api.Handle("/customers/{customerid}", rest.GetCustomer(db)).Methods("GET")
+
+	api.Handle("/items", rest.UpsertItem(db)).Methods("PUT")
+	api.Handle("/items", rest.ListItems(db)).Methods("GET")
+
 	api.Handle("/ping", pingHandler(c))
 
 	if ApiConfig.StaticDir != "" {

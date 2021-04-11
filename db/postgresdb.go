@@ -32,8 +32,8 @@ func InitDb(connStr string) (*PostgresDb, error) {
 	return p, nil
 }
 
-func (p *PostgresDb) createTable() error {
-	user :=
+func (p *PostgresDb) createTable() (err error) {
+	users :=
 		`
 			CREATE TABLE IF NOT EXISTS user_accounts (
 				id			BIGSERIAL NOT NULL PRIMARY KEY,
@@ -42,7 +42,7 @@ func (p *PostgresDb) createTable() error {
 			)
 		`
 
-	organisation :=
+	organisations :=
 		`
 			CREATE TABLE IF NOT EXISTS organisations (
 				id			BIGSERIAL NOT NULL PRIMARY KEY,
@@ -51,7 +51,7 @@ func (p *PostgresDb) createTable() error {
 			)
 		`
 
-	customer :=
+	customers :=
 		`
 			CREATE TABLE IF NOT EXISTS customers (
 				id 				BIGSERIAL NOT NULL PRIMARY KEY,
@@ -66,20 +66,42 @@ func (p *PostgresDb) createTable() error {
 			)	
 		`
 
-	_, err := p.dbConn.Exec(user)
+	items :=
+		`
+			CREATE TABLE IF NOT EXISTS items (
+				id			BIGSERIAL NOT NULL PRIMARY KEY,
+				item_id 	TEXT,
+				org_id  	TEXT,
+				name 		TEXT,
+				type 		TEXT,
+				hsn 		INTEGER,
+				sac 		INTEGER,
+				gst 		REAL,
+				igst 		REAL,
+				CONSTRAINT fk_org_id FOREIGN KEY(org_id) REFERENCES organisations(org_id),
+				CONSTRAINT unique_item_org UNIQUE (item_id, org_id)
+			)
+		`
+
+	_, err = p.dbConn.Exec(users)
 	if err != nil {
-		return err
+		return
 	}
 
-	_, err = p.dbConn.Exec(organisation)
+	_, err = p.dbConn.Exec(organisations)
 	if err != nil {
-		return err
+		return
 	}
 
-	_, err = p.dbConn.Exec(customer)
+	_, err = p.dbConn.Exec(customers)
 	if err != nil {
-		return err
+		return
 	}
 
-	return nil
+	_, err = p.dbConn.Exec(items)
+	if err != nil {
+		return
+	}
+
+	return
 }
