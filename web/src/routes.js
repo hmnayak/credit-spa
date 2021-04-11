@@ -98,6 +98,12 @@ export default (setLoading, showNotification) => {
       component: ItemPage,
       options: routeOpts,
       beforeEnter: [],
-    }
+    },
+    {
+      path: "/items/:itemId",
+      component: ItemPage,
+      options: routeOpts,
+      beforeEnter: [],
+    },
   ];
 };

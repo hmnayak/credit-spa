@@ -22,3 +22,10 @@ export async function getItemsPaginated(http, pageToken) {
     };
     return await http(`/api/items?page=${pageToken}`, params);
 }
+
+export async function getItemApi(http, id) {
+    const params = {
+      method: "GET",
+    };
+    return await http("/api/items/" + id, params);
+}

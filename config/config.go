@@ -4,7 +4,7 @@ const DefaultCustomersPageSize = 5
 
 const DefaultItemsPageSize = 5
 
-var ApiConfig Config
+var ApiConfig Config = Config{CustomersPageSize: DefaultCustomersPageSize, ItemsPageSize: DefaultItemsPageSize}
 
 // Config is a container of api configuration data
 type Config struct {

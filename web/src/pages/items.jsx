@@ -30,6 +30,7 @@ export const ListItemsPage = (props) => {
                       <a
                         key={item.itemid}
                         className="list-button"
+                        href={"/items/" + item.itemid}
                       >
                         {item.name}
                       </a>

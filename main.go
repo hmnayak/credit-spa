@@ -29,12 +29,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error parsing configuration data:", err)
 	}
-	if ApiConfig.CustomersPageSize == 0 {
-		ApiConfig.CustomersPageSize = DefaultCustomersPageSize
-	}
-	if ApiConfig.CustomersPageSize == 0 {
-		ApiConfig.ItemsPageSize = DefaultItemsPageSize
-	}
 
 	opt := option.WithCredentialsFile(ApiConfig.FBServiceFile)
 	fbApp, err := firebase.NewApp(context.Background(), nil, opt)
@@ -67,6 +61,7 @@ func main() {
 
 	api.Handle("/items", rest.UpsertItem(db)).Methods("PUT")
 	api.Handle("/items", rest.ListItems(db)).Methods("GET")
+	api.Handle("/items/{itemid}", rest.GetItem(db)).Methods("GET")
 
 	api.Handle("/ping", pingHandler(c))
 

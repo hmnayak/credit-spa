@@ -18,4 +18,5 @@ type Db interface {
 	GetLatestItemID(string) (string, error)
 	GetItemsPaginated(string, int, int) ([]*Item, error)
 	GetItemsCount(string) (int, error)
+	GetItem(string, string) (Item, error)
 }

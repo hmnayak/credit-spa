@@ -16,7 +16,7 @@ import (
 func UpsertItem(db model.Db) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		var item model.Item
-		json.NewDecoder(r.Body).Decode(&item) // TODO: error handling
+		err := json.NewDecoder(r.Body).Decode(&item) // TODO: error handling
 
 		if orgID := r.Context().Value(contextkeys.OrgID); orgID != nil {
 			item.OrganisationID = orgID.(string)
@@ -31,7 +31,7 @@ func UpsertItem(db model.Db) http.Handler {
 			assignItemID(db, &item)
 		}
 
-		err := db.UpsertItem(item)
+		err = db.UpsertItem(item)
 		if err != nil {
 			ui.RespondError(rw, http.StatusInternalServerError, "")
 			return

@@ -1,6 +1,6 @@
 import React from "react";
 import { Block, Button, List, ListInput, Page } from "framework7-react";
-import {upsertItem as upsertItem} from "../../services/itemapi";
+import {upsertItem, getItemApi} from "../../services/itemapi";
 
 export class ItemPage extends React.Component {
   constructor(props) {
@@ -19,7 +19,7 @@ export class ItemPage extends React.Component {
   componentDidMount() {
     let custId = this.props.f7route.params.itemId;
     if (custId != undefined) {
-      getitemApi(this.props.fetch, custId).then(async (res) => {
+      getItemApi(this.props.fetch, custId).then(async (res) => {
         const item = await res.json();
         this.setState({
           id: item.itemid,
@@ -102,7 +102,7 @@ export class ItemPage extends React.Component {
                 type="number"
                 placeholder="IGST"
                 value={this.state.igst}
-                onInput={e =>  this.setState({ igst: e.target.value }) }
+                onInput={e => this.setState({ igst: e.target.value }) }
               ></ListInput>
               <p style={{ color: "red" }}>{this.state.errorMsg}</p>
             </List>

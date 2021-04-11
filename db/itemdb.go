@@ -86,3 +86,18 @@ func (p *PostgresDb) GetItemsCount(orgID string) (count int, err error) {
 	}
 	return
 }
+
+func (p *PostgresDb) GetItem(itemID string, orgID string) (item model.Item, err error) {
+	query :=
+		`
+		SELECT item_id, name, type, hsn, sac, gst, igst
+		FROM items
+		WHERE item_id = $1 AND org_id = $2
+	`
+
+	err = p.dbConn.Get(&item, query, itemID, orgID)
+	if err != nil {
+		log.Printf("Error getting item with ID - %v: %v", itemID, err.Error())
+	}
+	return
+}
